@@ -1,0 +1,7 @@
+# data folders
+/data
+/out
+
+# project management files
+*.sublime-project
+*.sublime-workspace
