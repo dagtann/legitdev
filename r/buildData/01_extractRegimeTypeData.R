@@ -14,15 +14,15 @@ stata_import_attributes <- c(
   "expansion.table", "expansion.fields"
 )
 attributes(original_data)[stata_import_attributes] <- NULL
-str(original_data); detach(package:foreign)
+detach(package:foreign)
 
 base <- select(
   original_data,
   cowcode, year, d_electoralautocracy,
   d_militaryregime, d_monarchy, d_onepartyautocracy,
-  d_communistideocracy, d_personalistregime
+  d_communistideocracy, d_personalistregime, AnteilabsolutArme
 )
-str(base); rm(original_data)
+rm(original_data)
 
 # preliminary tests on data structure ======================
 with(base,                            # panel uniquely id'd?
@@ -64,6 +64,7 @@ base <- within(base, {
 )
 table(base$regime_type[base$year %in% 1960:2010])
 # matches 1960 - 2010 raw counts in manuscript
+base <- select(base, cowcode, year, regime_type, AnteilabsolutArme)
 
 # Housekeeping =============================================
 cleanWorkSpace <- c(cleanWorkSpace, 'base')
