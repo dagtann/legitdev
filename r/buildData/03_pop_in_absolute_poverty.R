@@ -8,17 +8,32 @@ if('WDI' %in% installed.packages()[, 'Package'] == FALSE){
 }
 
 # Download data --------------------------------------------
-wdi_poverty <- WDIsearch(
-  string = "poverty", field = "name", short = TRUE
-)
-View(wdi_poverty) # Result: SI.POV.2DAY
+# Uncomment to replicate indicator selection
+# wdi_poverty <- WDI::WDIsearch(
+#   string = "Poverty Headcount", field = "name", short = FALSE,
+#   cache = WDIcache()
+# )
+# write.csv(wdi_poverty,
+#   file.path(pathOut, 'wdi_poverty_searchResults.csv'),
+#   row.names = FALSE
+# )
+
 poverty <- WDI(
   country = unique(
     countrycode::countrycode(
       base$cowcode, origin = 'cown', destination = 'iso2c'
     )
   ),
-  indicator = c("SI.POV.2DAY", "SI.POV.DDAY"),
+  indicator = c(
+    'SI.POV.25DAY', 'SI.POV.2DAY', 'SI.POV.4DAY', 
+    'SI.POV.5DAY', 'SI.POV.DDAY'
+    # Poverty headcount ratio at $2.5 a day (PPP) (% of population)
+    # Poverty headcount ratio at $3.10 a day (2011 PPP) (% of population)
+    # Poverty headcount ratio at $4 a day (PPP) (% of population)
+    # Poverty headcount ratio at $5 a day (PPP) (% of population)
+    # Poverty headcount ratio at $1.90 a day (2011 PPP) (% of population)
+    # Downloads .2DAY & DDAY
+  ),
   start = min(base$year), end = max(base$year), extra = FALSE
 )
 # countrycode::countrycode(
@@ -32,7 +47,9 @@ poverty <- within(poverty,
     iso2c, "iso2c", "cown", warn = TRUE
   )
 )
-
+summary(poverty)
+head(poverty)
+dim(poverty)
 # Rudimentary tests on panel structure ---------------------
 if(any(is.na(poverty$cowcode))){ ## All cowcodes valid?
   stop("Error in absolute poverty: Some cowcodes are NA")

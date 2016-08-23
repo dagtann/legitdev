@@ -32,5 +32,5 @@ cleanWorkSpace <- c(ls(), 'cleanWorkSpace')
 source(file.path(pathCode, 'buildData', '01_extractRegimeTypeData.R'))
 source(file.path(pathCode, 'buildData', '02_id_panel_structure.R'))
 source(file.path(pathCode, 'buildData', '03_pop_in_absolute_poverty.R'))
-summary(base)
+
 ## END
