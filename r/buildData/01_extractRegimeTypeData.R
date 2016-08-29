@@ -17,10 +17,11 @@ attributes(original_data)[stata_import_attributes] <- NULL
 detach(package:foreign)
 
 base <- select(
-  original_data,
-  cowcode, year, d_electoralautocracy,
-  d_militaryregime, d_monarchy, d_onepartyautocracy,
-  d_communistideocracy, d_personalistregime, AnteilabsolutArme
+  original_data, cowcode, year, 
+  d_electoralautocracy, d_militaryregime, d_monarchy,
+  d_onepartyautocracy, d_communistideocracy,
+  d_personalistregime, AnteilabsolutArme, start_year,
+  end_year
 )
 rm(original_data)
 
@@ -32,7 +33,7 @@ with(base,                            # panel uniquely id'd?
 regime_type_dummies <- grep(pattern = 'd_', names(base), fixed = TRUE)
 summary(rowSums(base[, regime_type_dummies]))
 # max 1, but unexpected NA's
-summary(base[regime_type_dummies]) # identical # of NA's
+summary(base[regime_type_dummies])  # 4 all identical # NA's
 write.csv2(base, file.path(pathOut, 'base.csv'), row.names = FALSE)
 # NA's == democracy
 base <- filter(base, !is.na(d_electoralautocracy))
@@ -64,7 +65,9 @@ base <- within(base, {
 )
 table(base$regime_type[base$year %in% 1960:2010])
 # matches 1960 - 2010 raw counts in manuscript
-base <- select(base, cowcode, year, regime_type, AnteilabsolutArme)
+base <- select(base, cowcode, year, regime_type,
+  AnteilabsolutArme, start_year, end_year
+)
 
 # Housekeeping =============================================
 cleanWorkSpace <- c(cleanWorkSpace, 'base')

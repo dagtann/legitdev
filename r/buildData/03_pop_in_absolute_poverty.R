@@ -18,24 +18,31 @@ if('WDI' %in% installed.packages()[, 'Package'] == FALSE){
 #   row.names = FALSE
 # )
 
-poverty <- WDI(
-  country = unique(
-    countrycode::countrycode(
-      base$cowcode, origin = 'cown', destination = 'iso2c'
-    )
-  ),
-  indicator = c(
-    'SI.POV.25DAY', 'SI.POV.2DAY', 'SI.POV.4DAY', 
-    'SI.POV.5DAY', 'SI.POV.DDAY'
-    # Poverty headcount ratio at $2.5 a day (PPP) (% of population)
-    # Poverty headcount ratio at $3.10 a day (2011 PPP) (% of population)
-    # Poverty headcount ratio at $4 a day (PPP) (% of population)
-    # Poverty headcount ratio at $5 a day (PPP) (% of population)
-    # Poverty headcount ratio at $1.90 a day (2011 PPP) (% of population)
-    # Downloads .2DAY & DDAY
-  ),
-  start = min(base$year), end = max(base$year), extra = FALSE
-)
+filename <- 'wdi_poverty_headcount.RData'
+
+if(filename %in% dir(file.path(pathData)) == FALSE){
+  poverty <- WDI(
+    country = unique(
+      countrycode::countrycode(
+        base$cowcode, origin = 'cown', destination = 'iso2c'
+      )
+    ),
+    indicator = c(
+      'SI.POV.25DAY', 'SI.POV.2DAY', 'SI.POV.4DAY', 
+      'SI.POV.5DAY', 'SI.POV.DDAY'
+      # Poverty headcount ratio at $2.5 a day (PPP) (% of population)
+      # Poverty headcount ratio at $3.10 a day (2011 PPP) (% of population)
+      # Poverty headcount ratio at $4 a day (PPP) (% of population)
+      # Poverty headcount ratio at $5 a day (PPP) (% of population)
+      # Poverty headcount ratio at $1.90 a day (2011 PPP) (% of population)
+      # Downloads .2DAY & DDAY
+    ),
+    start = min(base$year), end = max(base$year), extra = FALSE
+  )
+  save(poverty, file = file.path(pathData, filename))
+} else {
+  load(file.path(pathData, filename))
+}
 # countrycode::countrycode(
 #   c('CS', 'YU', 'NA', 'TW'), # Data missing on countries
 #   origin = 'iso2c', destination = 'country.name'
@@ -47,9 +54,7 @@ poverty <- within(poverty,
     iso2c, "iso2c", "cown", warn = TRUE
   )
 )
-summary(poverty)
-head(poverty)
-dim(poverty)
+
 # Rudimentary tests on panel structure ---------------------
 if(any(is.na(poverty$cowcode))){ ## All cowcodes valid?
   stop("Error in absolute poverty: Some cowcodes are NA")
