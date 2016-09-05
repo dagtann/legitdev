@@ -21,7 +21,7 @@ base <- select(
   d_electoralautocracy, d_militaryregime, d_monarchy,
   d_onepartyautocracy, d_communistideocracy,
   d_personalistregime, AnteilabsolutArme, start_year,
-  end_year
+  end_year, Region8
 )
 rm(original_data)
 

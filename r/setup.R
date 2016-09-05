@@ -27,10 +27,9 @@ plot_size <- 7
 cleanWorkSpace <- c(ls(), 'cleanWorkSpace')
 
 # Execute specialized scripts ==============================
-
 ## Build data ----------------------------------------------
-source(file.path(pathCode, 'buildData', '01_extractRegimeTypeData.R'))
-source(file.path(pathCode, 'buildData', '02_id_panel_structure.R'))
-source(file.path(pathCode, 'buildData', '03_pop_in_absolute_poverty.R'))
-source(file.path(pathCode, 'buildData', '04_load_qog_data.R'))
+for(i in dir(file.path(pathCode, 'buildData'))){
+  source(file.path(pathCode, 'buildData', i))
+}
+save.image(file.path(pathOut, 'base.RData'))
 ## END
