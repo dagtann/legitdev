@@ -20,8 +20,8 @@ base <- select(
   original_data, cowcode, year, 
   d_electoralautocracy, d_militaryregime, d_monarchy,
   d_onepartyautocracy, d_communistideocracy,
-  d_personalistregime, AnteilabsolutArme, start_year,
-  end_year, Region8
+  d_personalistregime, start_year,
+  end_year, Region8, AnteilabsolutArme
 )
 rm(original_data)
 
@@ -66,7 +66,7 @@ base <- within(base, {
 table(base$regime_type[base$year %in% 1960:2010])
 # matches 1960 - 2010 raw counts in manuscript
 base <- select(base, cowcode, year, regime_type,
-  AnteilabsolutArme, start_year, end_year
+  start_year, end_year, Region8, AnteilabsolutArme
 )
 
 # Housekeeping =============================================

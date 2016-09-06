@@ -1,10 +1,10 @@
 # Load social heterogeneity information ====================
 # Load data ------------------------------------------------
 # % population aged 65 and older, ethnic fractionalization
-qog <- table(
-  collect(
+qog <- collect(
+  tbl(qog_db,
     sql("
-      SELECT ccodecow AS cowcode, year, 'wdi_pop65', 'fe_etfra'
+      SELECT ccodecow AS cowcode, year, wdi_pop65, fe_etfra
       FROM qog"
     )
   )

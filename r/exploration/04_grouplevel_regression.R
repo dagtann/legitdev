@@ -26,17 +26,7 @@ regime_types <- aggregate(
   regime_type ~ spell_id, data = base, FUN = unique
 )
 d_StartPostColdWar <- aggregate(StartPostCw ~ spell_id, data = base, FUN = unique)
-# regime_types <- within(regime_types,
-#   regime_type <- factor(regime_type,
-#     levels = 1:6,
-#     labels = c(
-#       'Electoral', 'Military', 'Monarchy', 'Oneparty',
-#       'Ideocracy', 'Personalist'
-#     )
-#   )
-# )
-options(contr.Sum.show.levels = FALSE)
-contrasts(regime_types[['regime_type']]) <- contr.sum(
+contrasts(regime_types[['regime_type']]) <- contr.Sum(
   length(levels(regime_types[['regime_type']]))
 )
 tmp <- left_join(
@@ -104,7 +94,7 @@ compareCoefs(fit, update(fit, data = tmp[-c(8, 33), ]))
 
 marginalModelPlot(fit) # regime types offer insufficient fit
 # Housekeeping =============================================
-# rm(list = ls()[ls() %in% cleanWorkSpace == FALSE])
+rm(list = ls()[ls() %in% cleanWorkSpace == FALSE])
 detach(package:lme4)
 detach(package:car)
 ## END

@@ -32,4 +32,13 @@ for(i in dir(file.path(pathCode, 'buildData'))){
   source(file.path(pathCode, 'buildData', i))
 }
 save.image(file.path(pathOut, 'base.RData'))
+
+# Data sharing ---------------------------------------------
+# Uncomment to generate an up-to-date version of the dataset
+# on the fly
+# write.csv(
+#   base,
+#   file = file.path(pathOut, paste0('data_legitimacy_development_ver', Sys.Date(), '.csv')),
+#   row.names = FALSE
+# )
 ## END

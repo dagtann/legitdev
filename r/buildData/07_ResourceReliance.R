@@ -22,7 +22,9 @@ haber <- within(haber, {
 )
 
 # Merge data ===============================================
-haber_merge <- select(haber, cowcode, year, Fiscal_Reliance)
+haber_merge <- select(haber,
+  cowcode, cnamehabmen, year, Fiscal_Reliance
+)
 haber_merge <- filter(
   haber_merge, year >= 1950 & !is.na(cowcode)
 )
@@ -33,11 +35,25 @@ with(haber_merge,                            # panel unique?
 haber_merge <- haber_merge[-10377, ]
 # TANZANIA 2007 double entry with completely NA
 setdiff(unique(base$cowcode), unique(haber_merge$cowcode))
-# Panel entries match?
-# Haber Menaldo lack Cape Verde, Seychelles, Sao Tome,
+# Do panel entries match?
+# Haber Menaldo missing Cape Verde, Seychelles, Sao Tome,
 # Yemen (North)
 
 base <- left_join(base, haber_merge, by = c('cowcode', 'year'))
+base <- within(base, {
+  cname <- countrycode::countrycode(cowcode, 'cown', 'country.name')
+  discrepancy <- cnamehabmen != cname
+  }
+)
+with(base, table(discrepancy))              # 438 mismatches
+tmp <- aggregate(
+  cowcode ~ cname + cnamehabmen,
+  data = subset(base, discrepancy == TRUE),
+  FUN = unique
+)
+tmp; rm(tmp)       # Mismatches refer to identical countries
+drop <- which(names(base) %in% c('cnamehabmen', 'discrepancy', 'cname'))
+base <- base[, -drop]; rm(drop)
 
 # housekeeping =============================================
 rm(list = ls()[ls() %in% cleanWorkSpace == FALSE])
