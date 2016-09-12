@@ -1,6 +1,4 @@
-summary(base$SI.POV.2DAY)
-summary(base$SI.POV.DDAY)
-summary(base$AnteilabsolutArme)
+# Marginal information on candidate indicators =============
 summary(
   base[, c(
     'SI.POV.2DAY', 'SI.POV.DDAY', 'une_pov',
@@ -8,15 +6,7 @@ summary(
     )
   ]
 )
-
-t(sapply(base[, c('AnteilabsolutArme', 'SI.POV.DDAY')], summary))
-aggregate(SI.POV.2DAY ~ regime_type, data = base, mean, na.rm = TRUE)
-aggregate(SI.POV.DDAY ~ regime_type, data = base, mean, na.rm = TRUE)
-aggregate(AnteilabsolutArme ~ regime_type, data = base, mean, na.rm = TRUE)
-
-aggregate(une_pov ~ regime_type, data = base, mean, na.rm = TRUE)
-aggregate(wdi_povhc190 ~ regime_type, data = base, mean, na.rm = TRUE)
-apply(
+apply(                                # how many nonmissing?
   base[,
     c('SI.POV.2DAY', 'SI.POV.DDAY', 'une_pov',
       'wdi_povhc190', 'wdi_povhc310', 'AnteilabsolutArme'
@@ -25,6 +15,21 @@ apply(
   2, 
   FUN = function(x){ sum(!is.na(x)) }
 )
+## DDAY closest conceptually, least missing
+
+sapply(base[, c('AnteilabsolutArme', 'SI.POV.DDAY')], summary)
+# marginal distributions differ tremendously
+
+aggregate(
+  cbind(
+    SI.POV.DDAY = base[['SI.POV.DDAY']],
+    AnteilAbsolutArme = base[['AnteilabsolutArme']]
+  ),
+  by = list(regime_type = base[['regime_type']]),
+  FUN = mean, na.rm = TRUE
+)
+# Tremendous differences b/w WDI raw and paper data
+
 cor(
   base[,
     c('SI.POV.2DAY', 'SI.POV.DDAY', 'une_pov',
@@ -35,7 +40,25 @@ cor(
 )
 with(base, sum(wdi_povhc190 == SI.POV.DDAY, na.rm = TRUE))
 with(base, sum(wdi_povhc310 == SI.POV.2DAY, na.rm = TRUE))
+# Mistake must be in AnteilabsolutArme b/c WDI information
+# from different sources match perfectly
+# Go with SI.POV.DDAY
 
+# data availability ----------------------------------------
+tmp <- aggregate(
+  SI.POV.DDAY ~ spell_id, data = base,
+  FUN = function(x){ sum( !is.na(x) ) }
+)
+summary(tmp)
+tmp2 <- aggregate(
+  rep(1, nrow(base)) ~ spell_id, data = base,
+  FUN = sum
+)
+summary(tmp2)
+# All authoritarian regimes at least 1 measurement
+# At most 15 obs. -> probably no regime completely covered
+
+# Bivariate distributions by regime type -------------------
 ggplot(data = base, aes(
     x = reorder(regime_type, SI.POV.DDAY, median, na.rm = TRUE),
     y = SI.POV.DDAY
@@ -46,21 +69,9 @@ aggregate(
   data = base,
   FUN = function(x){ sum(!is.na(x)) }
 )
-tmp <- aggregate(
-  SI.POV.DDAY ~ spell_id, data = base,
-  FUN = function(x){ sum( !is.na(x) ) }
-)
-summary(tmp)
-tmp2 <- aggregate(
-  rep(1, nrow(base)) ~ spell_id, data = base,
-  FUN = sum
-)
-summary(tmp)
-# All authoritarian regimes at least 1 measurement
-# At most 15 obs. -> !annual coverage for any regime
-
 ggplot(data = base, aes(x = SI.POV.DDAY)) +
   geom_density() + geom_rug() + facet_wrap(~regime_type)
+
 
 ggplot(data = base,
   aes(
