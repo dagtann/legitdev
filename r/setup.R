@@ -34,7 +34,9 @@ for(i in dir(file.path(pathCode, 'buildData'))){
 save.image(file.path(pathOut, 'base.RData'))
 
 ## Run analysis ============================================
-
+source( # transform variables, difference coding regime types
+  file.path(pathCode, 'analysis', '01_setupAnalysisData.R')
+)
 # Data sharing ---------------------------------------------
 # Uncomment to generate an up-to-date version of the dataset
 # on the fly

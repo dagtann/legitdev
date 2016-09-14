@@ -13,7 +13,7 @@ base <- mutate(                # transform DV to valid range
 base <- data.frame(  # create & attach cubic t to data.frame
   base, poly(base[['year']] - 1990, degree = 3)[, 1:3]
 )
-names(base)[16:18] <- c('t_lin', 't_squ', 't_cub')
+names(base)[(ncol(base)-2):ncol(base)] <- c('t_lin', 't_squ', 't_cub')
 
 fit_hlm <- lmer(                # extract intercept deviates
   logit_poverty ~ t_lin + t_squ + t_cub + (1 | spell_id),
