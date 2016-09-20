@@ -3,7 +3,6 @@
 # ==========================================================
 length(unique(base$cowcode))          # 121 unique countries
 
-
 length(unique(base$spell_id))             # 360 distinct ATR
 
 tmp <- aggregate(spell_id ~ year, data = base, FUN = length)
@@ -15,7 +14,6 @@ qplot(                              # ATR frequency per year
   geom = 'segment'
 )
 rm(tmp)
-
 table(base$regime_type)
 
 p <- qplot(data = base, x = year, fill = regime_type, binwidth = 1) +

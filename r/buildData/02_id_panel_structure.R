@@ -12,11 +12,6 @@
 
 # Identify panel entries -----------------------------------
 base <- base[with(base, order(cowcode, year)), ]
-base <- within(base,               # fix coding burkina faso
-  start_year <- ifelse(
-    cowcode == 439 & year %in% 1983:1990, 1983, start_year
-  )
-)
 base <- group_by(base, cowcode)
 base <- mutate(base, regime_change = ifelse(year == start_year, 1, 0)) %>%
   mutate(spell_no = cumsum(regime_change)) %>%
@@ -30,7 +25,7 @@ base <- ungroup(base)
 #   discrepancy <- ifelse(start_year != min_year | end_year != max_year, 1, 0)
 #   }
 # )
-# summary(base)
+# summary(base) # discrepancies all 0
 # View(base[base$discrepancy == 1, ])
 
 # basic descriptives ---------------------------------------

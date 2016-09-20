@@ -3,10 +3,7 @@
 # provide core dataset head ================================
 library('foreign')
 original_data <- read.dta(                    # stata import
-  file.path(
-    pathData,
-    'Kailitz, Wurster, Autocratic Regime legitimation and social policy outcomes april 2016 kai.dta'
-  )
+  file.path(pathData, '2016-09-20_regimeCodings.dta')
 )
 stata_import_attributes <- c(
   "datalabel", "time.stamp", "formats", "types",
@@ -16,27 +13,45 @@ stata_import_attributes <- c(
 attributes(original_data)[stata_import_attributes] <- NULL
 detach(package:foreign)
 
+valid_entries <- c(  # Drop DEM, transition, civil war, etc.
+  "Monarchy", "Personalist Regime", "Electoral Autocracy",
+  "Communist Ideocracy", "One-party Autocracy",
+  "Military Regime"
+)
+original_data <- subset(
+  original_data, regkai %in% valid_entries
+)
+table(original_data$regkai)
+
+library('countrycode')
+original_data <- within(original_data, {
+  cowcode <- countrycode(country, "country.name", "cown", warn = TRUE)
+  cowcode <- ifelse(country == "Serbia and Montenegro", 345, cowcode)
+  }
+)
+# Single warning
+# View(original_data[original_data$country == 'Serbia and Montenegro', ])
+# Serbia & Montegro 1993-1999, recode cowcode to 345
+detach(package:countrycode)
+
 base <- select(
   original_data, cowcode, year, 
   d_electoralautocracy, d_militaryregime, d_monarchy,
   d_onepartyautocracy, d_communistideocracy,
-  d_personalistregime, start_year,
-  end_year, AnteilabsolutArme
+  d_personalistregime, start_year, end_year
 )
-rm(original_data)
+rm(original_data, valid_entries)
 
 # preliminary tests on data structure ======================
 with(base,                            # panel uniquely id'd?
   table(duplicated(paste(cowcode, year, sep = ':')))
 ) # Yes
-                            # each panel single regime type?
-regime_type_dummies <- grep(pattern = 'd_', names(base), fixed = TRUE)
-summary(rowSums(base[, regime_type_dummies]))
-# max 1, but unexpected NA's
-summary(base[regime_type_dummies])  # 4 all identical # NA's
-write.csv2(base, file.path(pathOut, 'base.csv'), row.names = FALSE)
-# NA's == democracy
-base <- filter(base, !is.na(d_electoralautocracy))
+
+       # each panel single regime type? (max on rowsum == 1)
+regime_type_dummies <- grep(
+  pattern = '^d_', names(base), value = TRUE
+)
+summary(rowSums(base[, regime_type_dummies]))          # Yes
 
 # convert regime types to factor ===========================
 base <- within(base, {
@@ -66,15 +81,16 @@ base <- within(base, {
 table(base$regime_type[base$year %in% 1960:2010])
 # matches 1960 - 2010 raw counts in manuscript
 base <- select(base, cowcode, year, regime_type,
-  start_year, end_year, AnteilabsolutArme
+  start_year, end_year
 )
 
 # add country region dummies ===============================
 library(countrycode)
 base <- within(base, {
   region <- countrycode(cowcode, 'cown', 'region', warn = TRUE)
-})
-
+  }
+)
+detach(package:countrycode)
 # Housekeeping =============================================
 cleanWorkSpace <- c(cleanWorkSpace, 'base')
 rm(list = ls()[ls() %in% cleanWorkSpace == FALSE])

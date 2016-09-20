@@ -40,11 +40,11 @@ analysis <- subset(analysis,
 # analysis <- data.frame(  # create & attach cubic t to data.frame
 #   analysis, poly(analysis[['year']] - 1990, degree = 3)[, 1:3]
 # )
-# names(analysis)[15:17] <- c('t_lin', 't_squ', 't_cub')
+# names(analysis)[(ncol(analysis)-2):ncol(analysis)] <- c('t_lin', 't_squ', 't_cub')
 analysis <- within(analysis, {
-  t_lin <-  year - 1990
+  t_lin <-  (year - 1990)/10 
   t_squ <- t_lin^2
-  t_cub <- t_lin^3/1000 # NOTE 1
+  t_cub <- t_lin^3 # NOTE 1
   dur_lin <- year - start_year
   dur_squ <- dur_lin^2
   dur_cub <- dur_lin^3/1000 # NOTE 1
@@ -104,4 +104,4 @@ save.image(file = file.path(pathOut, 'analysis.RData'))
 cleanWorkSpace <- c(cleanWorkSpace, 'analysis')
 rm(list = ls()[ls() %in% cleanWorkSpace == FALSE])
 ## END
-# NOTE 1: numeric stability, c.f. Carter & Signorino 2010
+# NOTE 1: numeric stability, c.f. Carter & Signorino 2010: 283
