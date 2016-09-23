@@ -3,16 +3,21 @@
 # Drop irrelevant vars
 analysis <- subset(
   base,
+  subset = year >= 1960 & year <= 2010,
   select = c(
     "cowcode", "year", "regime_type", "spell_id",
-    'start_year', 'end_year', "SI.POV.DDAY", 
-    "lag_mad_gdppch", "growth_mad_gdppch", "wdi_agrvagdp", "wdi_pop65",
-    "fe_etfra", "ross_gas_value_2000", "ross_oil_value_2000", "region"
+    "start_year", "SI.POV.DDAY", "SP.DYN.IMRT.IN",
+    "lag_mad_gdppch", "growth_mad_gdppch", "wdi_agrvagdp",
+    "wdi_pop65", "fe_etfra", "ross_gas_value_2000",
+    "ross_oil_value_2000", "region", "lp_catho80",
+    "lp_muslim80", "lp_protmg80", "lp_no_cpm80" 
   )
 )
 
 # adjust scales of % vars
-for(i in c('wdi_agrvagdp', 'wdi_pop65', 'SI.POV.DDAY')){
+for(i in c('wdi_agrvagdp', 'wdi_pop65', 'SI.POV.DDAY',
+  'lp_catho80', 'lp_muslim80', 'lp_protmg80', 'lp_no_cpm80')
+){
   analysis[, i] <- analysis[, i] / 100
 }
 
@@ -30,9 +35,11 @@ analysis <- group_by(analysis, cowcode) %>%
 analysis <- ungroup(analysis)
 analysis <- subset(analysis, 
   select = c(
-    'cowcode', 'year', 'region', 'regime_type', 'spell_id', 'fe_etfra',
-    'start_year', 'end_year', 'SI.POV.DDAY', 'growth_mad_gdppch',
-    names(analysis)[grep(pattern = 'lag', x = names(analysis), fixed = TRUE)]
+    'cowcode', 'year', 'region', 'regime_type', 'spell_id',
+    'fe_etfra', 'start_year', 'SI.POV.DDAY', "SP.DYN.IMRT.IN",
+    'growth_mad_gdppch',
+    names(analysis)[grep(pattern = 'lag', x = names(analysis), fixed = TRUE)],
+    names(analysis)[grep(pattern = 'lp_', x = names(analysis), fixed = TRUE)]
   )
 )
 
@@ -88,6 +95,17 @@ analysis <- within(analysis, {
   }
 )
 # summary(analysis[, grep('d_', names(analysis), fixed = TRUE)])
+
+# dummies for region
+region_dummies <- with(analysis,
+  outer(region, sort(unique(region)), '==')
+)
+region_dummies <- apply(region_dummies, 2, as.integer)
+colnames(region_dummies) <- c(
+  'd_eap', 'd_eca', 'd_lac', 'd_mena', 'd_sa', 'd_ssa'
+)
+analysis <- data.frame(analysis, region_dummies)
+analysis <- select(analysis, -region)
 
 # transform dv
 summary(analysis$SI.POV.DDAY)

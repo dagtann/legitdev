@@ -35,7 +35,7 @@ original_data <- within(original_data, {
 detach(package:countrycode)
 
 base <- select(
-  original_data, cowcode, year, 
+  original_data, cowcode, year,
   d_electoralautocracy, d_militaryregime, d_monarchy,
   d_onepartyautocracy, d_communistideocracy,
   d_personalistregime, start_year, end_year
@@ -85,12 +85,15 @@ base <- select(base, cowcode, year, regime_type,
 )
 
 # add country region dummies ===============================
-library(countrycode)
-base <- within(base, {
-  region <- countrycode(cowcode, 'cown', 'region', warn = TRUE)
-  }
-)
-detach(package:countrycode)
+# library(countrycode)
+# base <- within(base, {
+#   region <- countrycode(cowcode, 'cown', 'region', warn = TRUE)
+#   }
+# )
+# detach(package:countrycode)
+# Depricated: Went for WDI regional classification b/c
+# less missing entries
+
 # Housekeeping =============================================
 cleanWorkSpace <- c(cleanWorkSpace, 'base')
 rm(list = ls()[ls() %in% cleanWorkSpace == FALSE])

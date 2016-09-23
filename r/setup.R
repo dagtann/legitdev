@@ -34,15 +34,26 @@ for(i in dir(file.path(pathCode, 'buildData'))){
 save.image(file.path(pathOut, 'base.RData'))
 
 ## Run analysis ============================================
-# source( # transform variables, difference coding regime types
-#   file.path(pathCode, 'analysis', '01_setupAnalysisData.R')
-# )
+source( # transform variables, difference coding regime types
+  file.path(pathCode, 'analysis', '01_setupAnalysisData.R')
+)
 # Data sharing ---------------------------------------------
 # Uncomment to generate an up-to-date version of the dataset
 # on the fly
-# write.csv(
-#   base,
-#   file = file.path(pathOut, paste0('data_legitimacy_development_ver', Sys.Date(), '.csv')),
-#   row.names = FALSE
-# )
+write.csv2(
+  base,
+  file = file.path(
+    pathOut,
+    paste0('data_legitimacy_development_ver', Sys.Date(), '.csv')
+  ),
+  row.names = FALSE
+)
+foreign::write.dta(
+  base,
+  file = file.path(
+    pathOut,
+    paste0('data_legitimacy_development_ver', Sys.Date(), '.dta')
+  ),
+  convert.factors = 'string'
+)
 ## END

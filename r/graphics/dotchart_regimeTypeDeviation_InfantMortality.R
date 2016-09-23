@@ -1,4 +1,9 @@
-# Generate an exploratory figure ===========================
+# This script generates a dot chart that compares regime ===
+# type means to the sample mean. Aggregate values and ======
+# confidence intervals are derived from a clustered ========
+# bootstrap which uses a stratified sampling scheme to =====
+# ensure that all regime types are present in all ==========
+# bootstrap samples. =======================================
 rm(list = ls()[ls() %in% cleanWorkSpace == FALSE])
 
 # global constants -----------------------------------------
@@ -10,11 +15,14 @@ regime_types <- c(
   'Monarchy', 'Ideocracy'
 )
 n_regime_type <- length(levels(base$regime_type))
-alpha <- .05                            # significance level
+alpha <- .1                            # significance level
 
 # data objects ---------------------------------------------
 poolingData <- na.omit(            # sample from poolingData
-  base[, c('spell_id', 'regime_type', dep_var)]
+  base[
+    base[['year']] %in% 1960:2010,
+    c('spell_id', 'regime_type', dep_var)
+  ]
 )
 poolingData <- within(poolingData, # coerce regime type order
   regime_type <- factor(
@@ -230,7 +238,7 @@ p <- ggplot(
       x = seq(0.6, 6.4, length.out = 100)
     ),
     aes(ymin = ymin, ymax = ymax, x = x), 
-    fill = 'steelblue1', alpha = .3
+    fill = 'gray45', alpha = .3
   ) +
   geom_point(                                  # sample mean
     data = mu, aes(shape = 'Gesamt', x = 0.6)
@@ -241,17 +249,26 @@ p <- ggplot(
   ) +
   geom_jitter(                   # country year observations
     position = position_jitter(width = .2, height = 0),
-    size = .6, alpha = .2, fill = 'grey65', shape = 21
+    size = .8, alpha = .4
   ) +
   geom_linerange(                    # mean|regime_type ci's
     data = regime_type_mean_ci, 
-    aes(ymin = ymin, ymax = ymax)
+    aes(ymin = ymin, ymax = ymax), colour = 'white'
   ) +
   geom_point(                             # mean|regime_type
     data = regime_type_mean_ci,
-    aes(shape = 'Regimetyp')
+    aes(shape = 'Regimetyp'), 
+    colour = 'white', fill = 'black'
   ) +
-  scale_shape_manual(values = c(15, 19)) +
+  scale_shape_manual(values = c(15, 21)) +
+  guides(
+    shape = 'none'
+    # guide_legend(
+    #   override.aes = list(
+    #     colour = 'black', fill = 'black'
+    #   )
+    # )
+  ) +
   scale_x_discrete(
     labels = c(
       'Ideocracy' = 'Kommunistische\nIdeokratie',
@@ -263,13 +280,13 @@ p <- ggplot(
     )
   ) +
   labs(
-    y = 'Kindersterblichkeitsrate pro 1.000 Lebendgeburten',
+    y = 'Säuglingssterblichkeit pro 1.000 Lebendgeburten',
     x = 'Regimetyp', shape = 'Mittelwert'
   ) +
   theme_minimal() +
   theme(
     text = element_text(family = 'CMU Sans Serif'),
-    axis.title.y = element_blank(),
+    axis.title.y = element_blank(), axis.title.x = element_blank(),
     legend.position = 'top',
     panel.grid.major = element_line(colour = 'grey85'),
     panel.grid.minor = element_line(colour = 'grey90'),
@@ -285,4 +302,4 @@ ggsave(
 )
 
 # housekeeping =============================================
-# rm(list = ls()[ls() %in% cleanWorkSpace == FALSE])
+rm(list = ls()[ls() %in% cleanWorkSpace == FALSE])

@@ -4,7 +4,9 @@ vars <- c(
   'lag_mad_gdppch', 'lag_wdi_agrvagdp', 'lag_wdi_pop65',
   'lag_ross_oil_value_2000', 'lag_ross_gas_value_2000',
   't_cub', 't_squ', 't_lin', 'fe_etfra', 'd_monarchy',
-  'd_ideocracy', 'd_oneparty', 'd_personalist', 'd_military'
+  'd_ideocracy', 'd_oneparty', 'd_personalist', 'd_military',
+  'd_eap', 'd_eca', 'd_lac', 'd_mena', 'd_sa'#,
+  # 'lp_catho80', 'lp_muslim80', 'lp_protmg80'
 )
 fit_data <- na.omit(analysis[, vars])
 dim(fit_data)
@@ -45,12 +47,7 @@ for(i in 1:niter){
 lines(t_seq*10+1990, 100 * (boot::inv.logit(yhat_mean)-.001), col = 'red')
 dev.off()
 
-
 0.45904/(0.45904+0.04145)
-
-
-
-
 
 hlm_2 <- update(
   hlm_1, . ~ . + growth_mad_gdppch + lag_mad_gdppch +
@@ -59,46 +56,22 @@ hlm_2 <- update(
   REML = FALSE
 )
 summary(hlm_2, correlation = FALSE)
-
 lrtest(hlm_1, hlm_2)
 confint(hlm_2)
 
 
 hlm_3 <- update(
-  hlm_2, . ~ . + d_monarchy + d_ideocracy + d_oneparty +
-    d_personalist + d_military + fe_etfra,
+  hlm_2, . ~ . + 
+    d_monarchy + d_ideocracy + d_oneparty + d_personalist + d_military +
+    fe_etfra +
+    d_eap + d_eca + d_lac + d_mena + d_sa, #+
+    # lp_catho80 + lp_muslim80 + lp_protmg80,
   REML = FALSE, data = fit_data
 )
 lrtest(hlm_2, hlm_3)
 summary(hlm_3)
 
-
 lapply(
   list(hlm_1, hlm_2, hlm_3),
   summary, correlation = FALSE
 )
-ran_intercepts <- ran_intercepts[[1]]
-plot(density(ran_intercepts))
-
-
-ran_intercepts <- ranef(hlm_3)[['spell_id']]
-names(ran_intercepts) <- 'intercept_deviate'
-ran_intercepts <- within(ran_intercepts, {
-  spell_id <- rownames(ran_intercepts)
-  spell_id <- factor(spell_id)
-  }
-)
-tmp <- aggregate(regime_type ~ spell_id, data = analysis, FUN = unique)
-ran_intercepts <- left_join(
-  ran_intercepts, tmp, by = 'spell_id'
-)
-ols_2ndlevel <- lm(
-  intercept_deviate ~ regime_type, data = ran_intercepts
-)
-summary(ols_2ndlevel)
-
-
-
-
-
-str(ran_intercepts)

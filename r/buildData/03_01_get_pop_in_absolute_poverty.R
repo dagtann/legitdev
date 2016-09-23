@@ -19,7 +19,6 @@ if('WDI' %in% installed.packages()[, 'Package'] == FALSE){
 # )
 
 filename <- 'wdi_poverty_headcount.RData'
-
 if(filename %in% dir(file.path(pathData)) == FALSE){
   poverty <- WDI(
     country = unique(
@@ -37,7 +36,7 @@ if(filename %in% dir(file.path(pathData)) == FALSE){
       # Poverty headcount ratio at $1.90 a day (2011 PPP) (% of population)
       # Downloads .2DAY & DDAY
     ),
-    start = min(base$year), end = max(base$year), extra = FALSE
+    start = min(base$year), end = max(base$year), extra = TRUE
   )
   save(poverty, file = file.path(pathData, filename))
 } else {
@@ -65,8 +64,30 @@ if( ## Any non-unique entries in WDI?
   stop("Error in absolute poverty: Some cowcode:year not unique")
 }
 
+# Update region data
+table(poverty[['region']], exclude = NULL)   # 102 NA values
+table(poverty[['iso2c']][is.na(poverty[['region']])])
+# KP == Korea, North | CV == Cabo Verde
+poverty <- within(poverty, {
+  region <- as.character(region)
+  region <- ifelse(
+    is.na(region) & iso2c == 'KP',
+    'East Asia & Pacific (all income levels)',
+    region
+  )
+  region <- ifelse(
+    is.na(region) & iso2c == 'CV',
+    'Sub-Saharan Africa (all income levels)',
+    region
+  )
+  region <- as.factor(region)
+  }
+)
+table(base$region)
 # Join data frames -----------------------------------------
-poverty <- select(poverty, cowcode, year, SI.POV.2DAY, SI.POV.DDAY)
+poverty <- select(
+  poverty, cowcode, year, region, SI.POV.2DAY, SI.POV.DDAY
+)
 base <- left_join(base, poverty, by = c('cowcode', 'year'))
 
 # housekeeping =============================================
