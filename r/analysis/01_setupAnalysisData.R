@@ -52,9 +52,9 @@ analysis <- within(analysis, {
   t_lin <-  (year - 1990)/10 
   t_squ <- t_lin^2
   t_cub <- t_lin^3 # NOTE 1
-  dur_lin <- year - start_year
+  dur_lin <- (year - start_year)/10
   dur_squ <- dur_lin^2
-  dur_cub <- dur_lin^3/1000 # NOTE 1
+  dur_cub <- dur_lin^3 # NOTE 1
   postColdWar <- ifelse(start_year >= 1990, 1, 0)
   }
 )
@@ -107,10 +107,14 @@ colnames(region_dummies) <- c(
 analysis <- data.frame(analysis, region_dummies)
 analysis <- select(analysis, -region)
 
-# transform dv
+# transform dvs
 summary(analysis$SI.POV.DDAY)
-analysis <- within(analysis,
+analysis <- within(analysis, {
   absolute_poverty <- boot::logit(SI.POV.DDAY/100+.001)
+  # Transform proportion to unbounded random variable
+  infant_mortality <- car::bcPower(SP.DYN.IMRT.IN, .5)
+  # See ./infant_mortality/01_gda.R
+  }
 )
 
 # summarize results
