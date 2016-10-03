@@ -40,20 +40,20 @@ source( # transform variables, difference coding regime types
 # Data sharing ---------------------------------------------
 # Uncomment to generate an up-to-date version of the dataset
 # on the fly
-write.csv2(
-  base,
-  file = file.path(
-    pathOut,
-    paste0('data_legitimacy_development_ver', Sys.Date(), '.csv')
-  ),
-  row.names = FALSE
-)
-foreign::write.dta(
-  base,
-  file = file.path(
-    pathOut,
-    paste0('data_legitimacy_development_ver', Sys.Date(), '.dta')
-  ),
-  convert.factors = 'string'
-)
+# write.csv2(
+#   base,
+#   file = file.path(
+#     pathOut,
+#     paste0('data_legitimacy_development_ver', Sys.Date(), '.csv')
+#   ),
+#   row.names = FALSE
+# )
+# foreign::write.dta(
+#   base,
+#   file = file.path(
+#     pathOut,
+#     paste0('data_legitimacy_development_ver', Sys.Date(), '.dta')
+#   ),
+#   convert.factors = 'string'
+# )
 ## END

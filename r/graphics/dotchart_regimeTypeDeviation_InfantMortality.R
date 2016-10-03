@@ -193,7 +193,7 @@ mu_regime_type_alphahat <- pnorm(
 
 # create plotting objects ----------------------------------
 mu <- data.frame(
-  SP.DYN.IMRT.IN = mean(mu),
+  SP.DYN.IMRT.IN = mean(mu), 
   ymin = quantile(mu, mu_alphahat), 
   ymax = quantile(mu, 1-mu_alphahat),
   regime_type = factor('Ideocracy', levels = regime_types)

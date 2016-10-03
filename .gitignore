@@ -6,3 +6,4 @@
 # project management files
 *.sublime-project
 *.sublime-workspace
+.Rproj.user

@@ -8,18 +8,19 @@ analysis <- subset(
     "cowcode", "year", "regime_type", "spell_id",
     "start_year", "SI.POV.DDAY", "SP.DYN.IMRT.IN",
     "lag_mad_gdppch", "growth_mad_gdppch", "wdi_agrvagdp",
-    "wdi_pop65", "fe_etfra", "ross_gas_value_2000",
+    "fe_etfra", "ross_gas_value_2000",
     "ross_oil_value_2000", "region", "lp_catho80",
     "lp_muslim80", "lp_protmg80", "lp_no_cpm80" 
   )
 )
 
 # adjust scales of % vars
-for(i in c('wdi_agrvagdp', 'wdi_pop65', 'SI.POV.DDAY',
-  'lp_catho80', 'lp_muslim80', 'lp_protmg80', 'lp_no_cpm80')
-){
-  analysis[, i] <- analysis[, i] / 100
-}
+# for(i in c('wdi_agrvagdp', 'wdi_pop65', 'SI.POV.DDAY',
+#   'lp_catho80', 'lp_muslim80', 'lp_protmg80', 'lp_no_cpm80')
+# ){
+#   analysis[, i] <- analysis[, i] / 100
+# }
+analysis[,'fe_etfra'] <- analysis[,'fe_etfra'] * 100
 
 # transform skewed vars
 for(i in c("lag_mad_gdppch", "ross_gas_value_2000", "ross_oil_value_2000")){
@@ -29,10 +30,11 @@ for(i in c("lag_mad_gdppch", "ross_gas_value_2000", "ross_oil_value_2000")){
 # generate lags
 analysis <- group_by(analysis, cowcode) %>%
   mutate(lag_wdi_agrvagdp = lag(wdi_agrvagdp, order_by = year)) %>%
-  mutate(lag_wdi_pop65 = lag(wdi_pop65, order_by = year)) %>%
+  #mutate(lag_wdi_pop65 = lag(wdi_pop65, order_by = year)) %>%
   mutate(lag_ross_oil_value_2000 = lag(ross_oil_value_2000, order_by = year)) %>%
   mutate(lag_ross_gas_value_2000 = lag(ross_gas_value_2000, order_by = year))
 analysis <- ungroup(analysis)
+
 analysis <- subset(analysis, 
   select = c(
     'cowcode', 'year', 'region', 'regime_type', 'spell_id',
@@ -44,22 +46,30 @@ analysis <- subset(analysis,
 )
 
 # generate process indicators
-# analysis <- data.frame(  # create & attach cubic t to data.frame
-#   analysis, poly(analysis[['year']] - 1990, degree = 3)[, 1:3]
-# )
-# names(analysis)[(ncol(analysis)-2):ncol(analysis)] <- c('t_lin', 't_squ', 't_cub')
-analysis <- within(analysis, {
+analysis <- within(analysis, { # correlated polynomials
   t_lin <-  (year - 1990)/10 
   t_squ <- t_lin^2
   t_cub <- t_lin^3 # NOTE 1
+  t_qud <- t_lin^4
   dur_lin <- (year - start_year)/10
   dur_squ <- dur_lin^2
   dur_cub <- dur_lin^3 # NOTE 1
-  postColdWar <- ifelse(start_year >= 1990, 1, 0)
   }
 )
+# defunct b/c Hamiltonian Monte Carlo very, very slow
+# replace with poly()
 
-# manual dummy difference coding
+# t_poly <- poly((analysis$year - 1990), degree = 3) * 100
+# dimnames(t_poly) <- list(NULL, c('t_lin', 't_squ', 't_cub'))
+# analysis <- data.frame(analysis, t_poly)
+
+# dur_poly <- poly((analysis$year - analysis$start_year), degree = 3) * 100
+# dimnames(dur_poly) <- list(NULL, c('dur_lin', 'dur_squ', 'dur_cub'))
+# analysis <- data.frame(analysis, dur_poly)
+
+
+
+# manual dummy deviation coding
 # NOTE: When using deviation coding R drops the -1 category.
 #   Interpretation/communication of results becomes more
 #   difficult.
@@ -105,7 +115,12 @@ colnames(region_dummies) <- c(
   'd_eap', 'd_eca', 'd_lac', 'd_mena', 'd_sa', 'd_ssa'
 )
 analysis <- data.frame(analysis, region_dummies)
-analysis <- select(analysis, -region)
+for(i in c('d_eap', 'd_eca', 'd_lac', 'd_mena', 'd_sa')){
+  analysis[, i] <- ifelse(
+    analysis[, 'd_ssa'] == 1, -1, analysis[, i]
+  )
+}
+analysis <- select(analysis, -d_ssa)
 
 # transform dvs
 summary(analysis$SI.POV.DDAY)

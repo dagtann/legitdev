@@ -16,7 +16,7 @@ qog <- rename(qog, cowcode = ccodecow) %>%
 qog <- group_by(qog, cowcode) %>%
   mutate(lag_mad_gdppch = lag(mad_gdppc, order_by = year)) %>%
   mutate(
-    growth_mad_gdppch = (mad_gdppc-lag_mad_gdppch)/lag_mad_gdppch
+    growth_mad_gdppch = 100 * (mad_gdppc-lag_mad_gdppch)/lag_mad_gdppch
   ) %>%
   ungroup(qog)
 summary(qog[, 'growth_mad_gdppch'])            # in [-1, 1]?
