@@ -9,8 +9,7 @@ d <- subset(                                    # model data
   select = c(
     'absolute_poverty', 'spell_id',
     't_lin', 't_squ', 't_cub', 't_qud',
-    "dur_lin", "dur_squ", 'dur_cub',
-    "growth_mad_gdppch", "lag_mad_gdppch",
+    "lag_mad_gdppch",
     "lag_wdi_agrvagdp",
     "lag_ross_oil_value_2000", "lag_ross_gas_value_2000",
     "d_monarchy", "d_ideocracy", "d_oneparty", "d_personalist", "d_military",
@@ -21,8 +20,8 @@ d <- subset(                                    # model data
 )
 d <- na.omit(d)
 hlm_varyingControls <- lmer(
-  absolute_poverty ~ t_lin + t_squ + (t_lin | spell_id) +
-  growth_mad_gdppch + lag_mad_gdppch + # state of economy
+  absolute_poverty ~ t_lin + t_squ + (t_squ | spell_id) +
+  lag_mad_gdppch + # state of economy
   lag_wdi_agrvagdp + # structure of economy
   lag_ross_oil_value_2000 + lag_ross_gas_value_2000, # rents
   data = d, REML = FALSE
@@ -30,8 +29,8 @@ hlm_varyingControls <- lmer(
 hlm_regimeTypes <- update(
   hlm_varyingControls, . ~ . +
   d_monarchy + d_ideocracy + d_oneparty + d_personalist + d_military
-)
-anova(hlm_varyingControls, hlm_regimeTypes)
+) 
+anova(hlm_varyingControls, hlm_regimeTypes) # not significant
 summary(hlm_regimeTypes)
 hlm_allControls <- update(hlm_regimeTypes,
   . ~ . +
@@ -64,10 +63,10 @@ sim_theta <- sim(hlm_regimeTypes, n_sims)
 # plot predicted distributions over dep_var ----------------
 for(i in 1:n_spells){
   beta_hat[i, , ] <- cbind(
-      sim_theta@fixef[, 1:2] + sim_theta@ranef[['spell_id']][, i, ]
-      ,
-      sim_theta@fixef[, 3:ncol(sim_theta@fixef)]
+    sim_theta@fixef[, 1] + sim_theta@ranef[['spell_id']][, i, 1],
+    sim_theta@fixef[, 2:ncol(sim_theta@fixef)]
   )
+  beta_hat[i, , 3] <- beta_hat[i, , n_coef] + sim_theta@ranef[['spell_id']][, i, 2]
 }
 y_hat <- lapply(
   unique(pred_dta[, 'spell_id']),
@@ -101,29 +100,33 @@ legend(
   legend = c('Observed', 'Fitted', 'Simulated'),
   col = c('red', 'green', 'black'), pch = 19
 )
+# Now this is really bad
 
 # plot fitted regime type effects
 pred_dta <- data.frame(
   intercept = 1,
   t_lin = 0, t_squ = 0,
-  growth_mad_gdppch =       mean(d$growth_mad_gdppch),
   lag_mad_gdppch =          mean(d$lag_mad_gdppch),
   lag_wdi_agrvagdp =        mean(d$lag_wdi_agrvagdp),
   lag_ross_oil_value_2000 = mean(d$lag_ross_oil_value_2000),
   lag_ross_gas_value_2000 = mean(d$lag_ross_gas_value_2000),
-  d_monarchy    = c(1, 0, 0, 0, 0, -1),
-  d_ideocracy   = c(0, 1, 0, 0, 0, -1),
-  d_oneparty    = c(0, 0, 1, 0, 0, -1),
-  d_personalist = c(0, 0, 0, 1, 0, -1),
-  d_military    = c(0, 0, 0, 0, 1, -1)
+  d_monarchy    = c(1, 0, 0, 0, 0, -1, 0),
+  d_ideocracy   = c(0, 1, 0, 0, 0, -1, 0),
+  d_oneparty    = c(0, 0, 1, 0, 0, -1, 0),
+  d_personalist = c(0, 0, 0, 1, 0, -1, 0),
+  d_military    = c(0, 0, 0, 0, 1, -1, 0)
 )
 pred_dta <- as.matrix(pred_dta)
 yhat <- tcrossprod(fixef(sim_theta), pred_dta)
+yhat <- apply(yhat, 2, function(x){
+  x_unscaled <- x + rnorm(n_sims, 0, sim_theta@sigma)
+  x_unscaled <- boot::inv.logit(x)}
+)
 summary(yhat)
-
-boxplot(yhat); abline(h = mean(fixef(sim_theta)[, 1]))
-tmp <- apply(yhat, 2, function(x){
-  unscaled_x <- boot::inv.logit(x)*100-0.001#(.5*x + 1)^(1/.5)
+boxplot(yhat[, 1:6]); abline(h = mean(yhat[, 7]))
+tmp <- apply(yhat[, 1:6], 2, function(x){
+  unscaled_x <- x
+  #unscaled_x <- boot::inv.logit(x)*100-0.001#(.5*x + 1)^(1/.5)
   mu <- mean(unscaled_x)
   lower <- quantile(unscaled_x, .05, names = FALSE)
   upper <- quantile(unscaled_x, .95, names = FALSE)
@@ -137,10 +140,14 @@ tmp[, 'regime_type'] <- c(
   'monarchy', 'ideocracy', 'oneparty', 'personalist',
   'military', 'electoral'
 )
-ggplot(
+p <- ggplot(
   data = tmp,
   aes(x = reorder(regime_type, mu), y = mu, ymin = lower, ymax = upper)
 ) +
-geom_pointrange() #+
-#geom_hline(yintercept = (.5*mean(fixef(sim_theta)[, 1]) + 1)^(1/.5))
-boot::inv.logit(13.547745)
+geom_pointrange() +
+geom_hline(yintercept = mean(yhat[, 7]))
+ggsave(
+  plot = p,
+  file = file.path(pathOut, 'hlm_absoltePoverty_regimeTypes.png'),
+  width = plot_size, height = plot_size/1.618
+)

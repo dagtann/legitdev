@@ -55,6 +55,7 @@ pred_dta <- data.frame(
 )
 pred_dta <- as.matrix(pred_dta)
 yhat <- tcrossprod(fixef(sim_theta), pred_dta)
+yhat <- apply(yhat, 2, function(y){y + rnorm(n_sims, 0, sim_theta@sigma)})
 # Disregards random effects b/c intercept variance does not
 # interfere with fixed effect on regimetype
 

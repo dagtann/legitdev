@@ -7,7 +7,7 @@ for(i in hlm_packages){library(i, character.only = TRUE)}
 d <- subset(                                    # model data
   analysis,
   select = c(
-    'infant_mortality', 'spell_id',
+    'absolute_poverty', 'spell_id',
     't_lin', 't_squ', 't_cub', 't_qud',
     "lag_mad_gdppch",
     "lag_wdi_agrvagdp",
@@ -21,49 +21,32 @@ d <- subset(                                    # model data
 d <- na.omit(d)
 
 hlm_baseline <- lmer(
-  infant_mortality ~ t_lin + t_squ + (t_lin + t_squ | spell_id),
+  absolute_poverty ~ t_lin + t_squ + (t_squ | spell_id),
   data = d, REML = FALSE
 )
-
 hlm_varyingControls <- update(hlm_baseline,
   . ~ . +
   lag_mad_gdppch + # state of economy
   lag_wdi_agrvagdp + # structure of economy
   lag_ross_oil_value_2000 + lag_ross_gas_value_2000 # rents
 )
-
 anova(hlm_baseline, hlm_varyingControls)
 lapply(
   list(hlm_baseline, hlm_varyingControls),
   function(x){cbind(AIC = extractAIC(x)[[2]], BIC = BIC(x), DIC = extractDIC(x))}
 )
-# Time-varying controls add information
+# Time-varying controls add much information
 
 summary(hlm_baseline); summary(hlm_varyingControls)
 # Controls reduce intercept variation, but not residual variation
 # GDP strong negative correlation with intercepts
 # All signs are as expected
-
-confint(hlm_varyingControls)
-
 # plot slope deviates --------------------------------------
 # intercept
 car::qqPlot(ranef(hlm_varyingControls)[['spell_id']][, 1])
 # large negative deviates violate normality
-# t_lin
-car::qqPlot(ranef(hlm_varyingControls)[['spell_id']][, 2])
 # t_squ
-car::qqPlot(ranef(hlm_varyingControls)[['spell_id']][, 3])
-# Both t_lin and t_squ clearly violate normality
-
-ggplot(
-  data = tmp,
-  aes(x = factor(spell), y = mu, ymin = lower, ymax = upper)
-) +
-  geom_pointrange() +
-  geom_hline(yintercept = 0, colour='red')
-# numerous significant deviations from the population mean
-# hlm clearly required
+car::qqPlot(ranef(hlm_varyingControls)[['spell_id']][, 2])
 
 # Simulate model implied distributions of DV ---------------
 n_sims <- 1500
@@ -88,9 +71,10 @@ sim_theta <- sim(hlm_varyingControls, n_sims)
 # plot predicted distributions over dep_var ----------------
 for(i in 1:n_spells){
   beta_hat[i, , ] <- cbind(
-      sim_theta@fixef[, 1:3] + sim_theta@ranef[['spell_id']][, i, ],
-      sim_theta@fixef[, 4:8]
+    sim_theta@fixef[, 1] + sim_theta@ranef[['spell_id']][, i, 1],
+    sim_theta@fixef[, 2:ncol(sim_theta@fixef)]
   )
+  beta_hat[i, , 3] <- beta_hat[i, , n_coef] + sim_theta@ranef[['spell_id']][, i, 2]
 }
 y_hat <- lapply(
   unique(pred_dta[, 'spell_id']),
@@ -110,17 +94,19 @@ names(y_hat) <- as.character(unique(pred_dta[, 'spell_id']))
 y_hat <- do.call(cbind, y_hat)
 
 plot(
-  density(d[, 'infant_mortality']),
-  type = 'n', xlim = c(-10, 40), ylim = c(0, .12),
+  density(d[, 'absolute_poverty']),
+  type = 'n', xlim = c(-20, 20), ylim = c(0, .30),
   main = paste0("Fit from simulated data")
 )
-for(i in 1:n_sims){
+for(i in sample(1:n_sims, 250, replace = FALSE)){
   lines(density(y_hat[i, ]), col = scales::alpha('black', 0.2))
 }
-lines(density(d$infant_mortality), col = 'red')
+lines(density(d$absolute_poverty), col = 'red')
 lines(density(predict(hlm_varyingControls)), col = 'blue')
 legend(
   x = 'topright',
   legend = c('Observed', 'Fitted', 'Simulated'),
   col = c('red', 'blue', 'black'), pch = 19
 )
+# Fitted values pretty close to data, but simulations flip
+# around wildly between the two modes.

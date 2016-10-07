@@ -82,7 +82,7 @@ p <- ggplot(
   geom_smooth(method = 'lm', colour = 'black', se = FALSE, linetype = 'dashed', size = .3) +
   geom_point(size = .2, alpha = .6) +
   geom_linerange(size = .1, alpha = .6) +
-  labs(y = 'Interceptabweichung', title = '(a) Säuglingssterblichkeit pro 1.000 Lebendgeburten') +
+  labs(y = 'Interceptabweichung', title = '(a) Transformierte Säuglingssterblichkeit') +
   facet_grid(~ model) +
   theme_minimal(base_family = 'CMU Sans Serif') +
   theme(

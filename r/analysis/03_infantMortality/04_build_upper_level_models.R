@@ -10,7 +10,7 @@ d <- subset(                                    # model data
     'infant_mortality', 'spell_id',
     't_lin', 't_squ', 't_cub', 't_qud',
     "dur_lin", "dur_squ", 'dur_cub',
-    "growth_mad_gdppch", "lag_mad_gdppch",
+    "lag_mad_gdppch",
     "lag_wdi_agrvagdp",
     "lag_ross_oil_value_2000", "lag_ross_gas_value_2000",
     "d_monarchy", "d_ideocracy", "d_oneparty", "d_personalist", "d_military",
@@ -20,9 +20,13 @@ d <- subset(                                    # model data
   )
 )
 d <- na.omit(d)
+hlm_growthCurve <- lmer(
+  infant_mortality ~ t_lin + t_squ + (t_lin + t_squ | spell_id),
+  data = d, REML = FALSE
+)
 hlm_varyingControls <- lmer(
   infant_mortality ~ t_lin + t_squ + (t_lin + t_squ | spell_id) +
-  growth_mad_gdppch + lag_mad_gdppch + # state of economy
+  lag_mad_gdppch + # state of economy
   lag_wdi_agrvagdp + # structure of economy
   lag_ross_oil_value_2000 + lag_ross_gas_value_2000, # rents
   data = d, REML = FALSE
@@ -33,6 +37,7 @@ hlm_regimeTypes <- update(
 )
 anova(hlm_varyingControls, hlm_regimeTypes)
 summary(hlm_regimeTypes)
+confint(hlm_regimeTypes)
 hlm_allControls <- update(hlm_regimeTypes,
   . ~ . +
   lp_catho80 + lp_muslim80 + lp_protmg80 +
@@ -45,9 +50,9 @@ summary(hlm_allControls)
 # Simulate model implied distributions of DV ---------------
 n_sims <- 2000
 n_spells <- length(unique(d$spell_id))
-n_coef <- length(fixef(hlm_allControls))
+n_coef <- length(fixef(hlm_regimeTypes))
 pred_dta <- cbind(
-  model.matrix(hlm_allControls),
+  model.matrix(hlm_regimeTypes),
   spell_id = as.numeric(d$spell_id)
 )
 beta_hat <- array(
@@ -60,13 +65,13 @@ beta_hat <- array(
   )
 )
 
-sim_theta <- sim(hlm_allControls, n_sims)
+sim_theta <- sim(hlm_regimeTypes, n_sims)
 
 # plot predicted distributions over dep_var ----------------
 for(i in 1:n_spells){
   beta_hat[i, , ] <- cbind(
       sim_theta@fixef[, 1:3] + sim_theta@ranef[['spell_id']][, i, ],
-      sim_theta@fixef[, 4:8]
+      sim_theta@fixef[, 4:ncol(sim_theta@fixef)]
   )
 }
 y_hat <- lapply(
@@ -91,7 +96,7 @@ plot(
   type = 'n', xlim = c(-10, 40), ylim = c(0, .12),
   main = paste0("Fit from simulated data")
 )
-for(i in 1:n_sims){
+for(i in sample(1:n_sims, 500, replace = FALSE)){
   lines(density(y_hat[i, ]), col = scales::alpha('black', 0.2))
 }
 lines(density(d$infant_mortality), col = 'red')
@@ -106,7 +111,6 @@ legend(
 pred_dta <- data.frame(
   intercept = 1,
   t_lin = 0, t_squ = 0,
-  growth_mad_gdppch =       0, #mean(d$growth_mad_gdppch),
   lag_mad_gdppch =          0, #mean(d$lag_mad_gdppch),
   lag_wdi_agrvagdp =        0, #mean(d$lag_wdi_agrvagdp),
   lag_ross_oil_value_2000 = 0, #mean(d$lag_ross_oil_value_2000),
@@ -119,7 +123,8 @@ pred_dta <- data.frame(
 )
 pred_dta <- as.matrix(pred_dta)
 yhat <- tcrossprod(fixef(sim_theta), pred_dta)
-dim(yhat)
+yhat <- apply(yhat, 2, function(x){x + rnorm(n_sims, 0, sim_theta@sigma)})
+
 boxplot(yhat); abline(h = mean(fixef(sim_theta)[, 1]))
 tmp <- apply(yhat, 2, function(x){
   unscaled_x <- (.5*x + 1)^(1/.5)

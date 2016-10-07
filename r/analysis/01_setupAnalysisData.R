@@ -10,7 +10,8 @@ analysis <- subset(
     "lag_mad_gdppch", "growth_mad_gdppch", "wdi_agrvagdp",
     "fe_etfra", "ross_gas_value_2000",
     "ross_oil_value_2000", "region", "lp_catho80",
-    "lp_muslim80", "lp_protmg80", "lp_no_cpm80" 
+    "lp_muslim80", "lp_protmg80", "lp_no_cpm80",
+    "wdi_pop65"
   )
 )
 
@@ -39,7 +40,7 @@ analysis <- subset(analysis,
   select = c(
     'cowcode', 'year', 'region', 'regime_type', 'spell_id',
     'fe_etfra', 'start_year', 'SI.POV.DDAY', "SP.DYN.IMRT.IN",
-    'growth_mad_gdppch',
+    'growth_mad_gdppch', 'wdi_pop65',
     names(analysis)[grep(pattern = 'lag', x = names(analysis), fixed = TRUE)],
     names(analysis)[grep(pattern = 'lp_', x = names(analysis), fixed = TRUE)]
   )
@@ -126,6 +127,7 @@ analysis <- select(analysis, -d_ssa)
 summary(analysis$SI.POV.DDAY)
 analysis <- within(analysis, {
   absolute_poverty <- boot::logit(SI.POV.DDAY/100+.001)
+  old_people <- boot::logit(wdi_pop65/100)
   # Transform proportion to unbounded random variable
   infant_mortality <- car::bcPower(SP.DYN.IMRT.IN, .5)
   # See ./infant_mortality/01_gda.R
