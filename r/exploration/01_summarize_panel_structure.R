@@ -28,3 +28,27 @@ ggsave(file.path(pathOut, 'count_regimesXtype.png'),
 #   increasingly frequent 1960-1990
 # Electoral most frequent but late 1970s
 
+length(unique(base$cowcode[base$year >= 1960]))          # 121 unique countries
+length(unique(base$spell_id[base$year >= 1960]))             # 360 distinct ATR
+
+tmp <- aggregate(spell_id ~ year, 
+  data = subset(base, year >= 1960 & year <= 2010),
+  FUN = length
+)
+range(tmp$spell_id)              # 34 to 94 regimes per year
+mean(tmp$spell_id)          # on average 69 regimes per year
+
+
+tmp <- subset(base, year %in% 1960:2010)
+tmp[, 'tenure'] <- with(tmp, ave(year, spell_id, FUN = seq_along))
+summary(base[['tenure']])
+
+names(base)
+tmp <- aggregate(
+  tenure ~ spell_id, 
+  data = tmp,
+  FUN = max
+)
+summary(tmp)
+range(tmp$spell_id)              # 34 to 94 regimes per year
+mean(tmp$spell_id)          # on average 69 regimes per year

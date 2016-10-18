@@ -57,12 +57,14 @@ yhat <- apply(yhat, 2, function(y){y + rnorm(n_sims, 0, sim_theta@sigma)})
 # Disregards random effects b/c intercept variance does not
 # interfere with fixed effect on regimetype
 
+alpha <- .1
 tmp <- apply(yhat[, 1:6], 2, function(x){
-  unscaled_x <- (.5*x + 1)^(1/.5)
+  unscaled_x <- x
   mu <- mean(unscaled_x)
-  lower <- quantile(unscaled_x, .05, names = FALSE)
-  upper <- quantile(unscaled_x, .95, names = FALSE)
+  lower <- quantile(unscaled_x, alpha/2, names = FALSE)
+  upper <- quantile(unscaled_x, 1-alpha/2, names = FALSE)
   out <- c(mu = mu, lower = lower, upper = upper)
+  out <- (.5 * out + 1)^(1/.5)
   return(out)
   }
 )
@@ -98,7 +100,7 @@ p <- ggplot(
     'oneparty' = 'Einpartei-\nautokratie'
     )
   ) +
-  labs(title = '(a) Säuglingssterblichkeit pro 1.000 Lebendgeburten') +
+  labs(y = 'Säuglingssterblichkeit pro 1.000 Lebendgeburten') +
   scale_y_continuous(
     limits = c(40, 120),
     breaks = c(40, 60, mu, 80, 100, 120),
@@ -107,7 +109,6 @@ p <- ggplot(
   theme_minimal(base_family = 'CMU Sans Serif') +
   theme(
     axis.title.x = element_blank(),
-    axis.title.y = element_blank(),
     panel.grid.major = element_line(colour = 'grey85'),
     panel.grid.minor = element_blank(),
     plot.margin = grid::unit(c(0, .5, 0, 0)+.1, 'lines')

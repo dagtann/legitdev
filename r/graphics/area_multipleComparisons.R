@@ -64,20 +64,20 @@ yhat <- apply(yhat, 2, function(y){
 
 delta <- cbind(
   c(yhat[, 2] - yhat[, 3]),           # ideocracy - oneparty
-  c(yhat[, 4] - yhat[, 1]),         # personalist - monarchy
+  c(yhat[, 1] - yhat[, 4]),           # monarchy - personalist
   c(yhat[, 1] - yhat[, 2]),           # monarchy - ideocracy
   c(yhat[, 1] - yhat[, 6])            # monarchy - electoral
 )
 summary(delta)
 apply(delta, 2, function(x){1 - sum(x < 0)/length(x)})
-alpha <- .1
+alpha <- .10
 dens_list <- lapply(
   1:ncol(delta), function(x){
   dens <- density(delta[, x], n = 2^11)
   dens <- data.frame(
     comparison = x, x = dens[['x']], y = dens[['y']],
-    lower = quantile(delta[, x], alpha, names = FALSE),
-    upper = quantile(delta[, x], 1-alpha, names = FALSE)
+    lower = quantile(delta[, x], alpha/2, names = FALSE),
+    upper = quantile(delta[, x], 1-alpha/2, names = FALSE)
   )
   return(dens)
   }
@@ -87,10 +87,10 @@ dens_list <- within(dens_list,
   comparison <- factor(comparison,
   levels = 1:ncol(delta),
   labels = c(
-    "Kommunistische Ideokratie - Einparteiautokratie",
-    "Personalistische Autokratie - Monarchie",
-    "Monarchie - Kommunistische Ideokratie",
-    "Monarchie - Elektorale Autokratie"
+    "(1) Kommunistische Ideokratie - Einparteiautokratie",
+    "(2) Monarchie - Personalistische Autokratie",
+    "(3) Monarchie - Kommunistische Ideokratie",
+    "(4) Monarchie - Elektorale Autokratie"
   ) 
   )
 )
@@ -104,7 +104,7 @@ p <- ggplot(data = dens_list) +
     aes(x = x, y = y), alpha = .4
   ) +
   scale_x_continuous(breaks = seq(-75, 75, 25)) +
-  labs(y = "Dichte", x = "Differenz der Vorhersagewerte") +
+  labs(y = "Dichte", x = "Differenz der vorhergesagten Säuglingssterblichkeit") +
   theme_minimal(base_family = 'CMU Sans Serif') +
   facet_wrap(~comparison) +
   theme(

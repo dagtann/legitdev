@@ -24,6 +24,8 @@ hlm_growthCurve <- lmer(
   infant_mortality ~ t_lin + t_squ + (t_lin + t_squ | spell_id),
   data = d, REML = FALSE
 )
+confint(hlm_growthCurve, level = .9)
+
 hlm_varyingControls <- lmer(
   infant_mortality ~ t_lin + t_squ + (t_lin + t_squ | spell_id) +
   lag_mad_gdppch + # state of economy
@@ -31,13 +33,16 @@ hlm_varyingControls <- lmer(
   lag_ross_oil_value_2000 + lag_ross_gas_value_2000, # rents
   data = d, REML = FALSE
 )
+confint(hlm_varyingControls, level = .9)
+
 hlm_regimeTypes <- update(
   hlm_varyingControls, . ~ . +
   d_monarchy + d_ideocracy + d_oneparty + d_personalist + d_military
 )
+confint(hlm_regimeTypes, level = .9)
 anova(hlm_varyingControls, hlm_regimeTypes)
 summary(hlm_regimeTypes)
-confint(hlm_regimeTypes)
+
 hlm_allControls <- update(hlm_regimeTypes,
   . ~ . +
   lp_catho80 + lp_muslim80 + lp_protmg80 +
@@ -46,7 +51,7 @@ hlm_allControls <- update(hlm_regimeTypes,
 )
 anova(hlm_varyingControls, hlm_regimeTypes, hlm_allControls)
 summary(hlm_allControls)
-
+confint(hlm_allControls, level = .9)
 # Simulate model implied distributions of DV ---------------
 n_sims <- 2000
 n_spells <- length(unique(d$spell_id))

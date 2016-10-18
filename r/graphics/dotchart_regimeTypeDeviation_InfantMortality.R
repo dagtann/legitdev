@@ -8,6 +8,7 @@ rm(list = ls()[ls() %in% cleanWorkSpace == FALSE])
 
 # global constants -----------------------------------------
 dep_var <- 'SP.DYN.IMRT.IN'
+highlight <- 'white'
 regime_types <- c( 
   # manually sort factor levels b/c simplifies work with
   # numerous plotting objects simultanously
@@ -42,7 +43,7 @@ names(spell_list) <- regime_types
 # execute cluster bootstrap on mu and mu|regime_type -------
 
 # bootstrap constants
-nIter <- 5000
+nIter <- 5e3
 set.seed(5034)
 
 # bootstrap objects
@@ -248,17 +249,17 @@ p <- ggplot(
     aes(ymin = ymin, ymax = ymax, x = 0.6)
   ) +
   geom_jitter(                   # country year observations
-    position = position_jitter(width = .2, height = 0),
-    size = .8, alpha = .4
+    position = position_jitter(width = .05, height = 0),
+    size = .7, alpha = ., shape = 19, colour = 'black', fill = 'black'
   ) +
   geom_linerange(                    # mean|regime_type ci's
     data = regime_type_mean_ci, 
-    aes(ymin = ymin, ymax = ymax), colour = 'white'
+    aes(ymin = ymin, ymax = ymax), colour = highlight
   ) +
   geom_point(                             # mean|regime_type
     data = regime_type_mean_ci,
     aes(shape = 'Regimetyp'), 
-    colour = 'white', fill = 'black'
+    colour = highlight, fill = 'black'
   ) +
   scale_shape_manual(values = c(15, 21)) +
   guides(
