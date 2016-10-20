@@ -1,8 +1,13 @@
-# Load Haber & Menaldo resource reliant dummy
+# Load Haber & Menaldo resource reliant dummy ==============
+# Data downloaded from
+#   http://stephen-haber.com/wp-content/uploads/2014/02/
+#   Haber_Menaldo_2011_APSR_Dataset.xls, last access:
+#   October 20, 2016.
 haber <- read.csv2(
   file.path(pathData, 'Haber_Menaldo_2011_APSR_Dataset.csv'),
   sep = ';', stringsAsFactors = FALSE
 )
+
 haber <- within(haber, {
   cnamehabmen <- ifelse(cnamehabmen == 'Pakisan', 'Pakistan', cnamehabmen)
   cnamehabmen <- ifelse(cnamehabmen == 'Serbia RB', 'Serbia', cnamehabmen)
@@ -21,7 +26,7 @@ haber <- within(haber, {
   }
 )
 
-# Merge data ===============================================
+# Merge data -----------------------------------------------
 haber_merge <- select(haber,
   cowcode, cnamehabmen, year, Fiscal_Reliance
 )
@@ -29,6 +34,7 @@ haber_merge <- filter(
   haber_merge, year >= 1950 & !is.na(cowcode)
 )
 
+# quick check data structure
 with(haber_merge,                            # panel unique?
   table(duplicated(paste(cowcode, year, sep = ':')))
 )
@@ -57,12 +63,3 @@ base <- base[, -drop]; rm(drop)
 
 # housekeeping =============================================
 rm(list = ls()[ls() %in% cleanWorkSpace == FALSE])
-
-# haber_errata <- read.csv2(
-#   file.path(pathData, 'Haber_Menaldo_2011_APSR_Dataset_errata.csv'),
-#   sep = ';', stringsAsFactors = FALSE, skip = 3
-# )
-# haber_errata <- rename(haber_errata, 
-#   year = Year, hmccode = HabMenCCode, 
-# )
-# str(haber_errata)

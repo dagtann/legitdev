@@ -1,5 +1,6 @@
 # Download WDI Poverty headcount ratio at $2 a day =========
 #   (% of population) ======================================
+# Script downloads information on geographical region as well.
 if('WDI' %in% installed.packages()[, 'Package'] == FALSE){
   install.packages('WDI', dependencies = TRUE)
   library('WDI')  
@@ -9,6 +10,8 @@ if('WDI' %in% installed.packages()[, 'Package'] == FALSE){
 
 # Download data --------------------------------------------
 # Uncomment to replicate indicator selection
+# Look up poverty indicator on database. Read results in
+# spreadsheet program.
 # wdi_poverty <- WDI::WDIsearch(
 #   string = "Poverty Headcount", field = "name", short = FALSE,
 #   cache = WDIcache()
@@ -34,7 +37,7 @@ if(filename %in% dir(file.path(pathData)) == FALSE){
       # Poverty headcount ratio at $4 a day (PPP) (% of population)
       # Poverty headcount ratio at $5 a day (PPP) (% of population)
       # Poverty headcount ratio at $1.90 a day (2011 PPP) (% of population)
-      # Downloads .2DAY & DDAY
+      # NOTE: Downloads .2DAY & DDAY only
     ),
     start = min(base$year), end = max(base$year), extra = TRUE
   )
@@ -84,6 +87,7 @@ poverty <- within(poverty, {
   }
 )
 table(base$region)
+
 # Join data frames -----------------------------------------
 poverty <- select(
   poverty, cowcode, year, region, SI.POV.2DAY, SI.POV.DDAY

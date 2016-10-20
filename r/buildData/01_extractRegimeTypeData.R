@@ -1,8 +1,13 @@
 # This script pulls regime type data from the original
 # manuscript DS and converts into a clean format.
 # provide core dataset head ================================
-library('foreign')
-original_data <- read.dta(                    # stata import
+# Source: Kailitz, Steffen (2013): 'Classifying political
+# regimes revisited: Legitimation and durability',
+# Democratization, 20 (1), 39–60.
+
+# load data ------------------------------------------------
+library('foreign')                  # get clean stata import
+original_data <- read.dta(
   file.path(pathData, '2016-09-20_regimeCodings.dta')
 )
 stata_import_attributes <- c(
@@ -21,7 +26,6 @@ valid_entries <- c(  # Drop DEM, transition, civil war, etc.
 original_data <- subset(
   original_data, regkai %in% valid_entries
 )
-table(original_data$regkai)
 
 library('countrycode')
 original_data <- within(original_data, {
@@ -29,7 +33,7 @@ original_data <- within(original_data, {
   cowcode <- ifelse(country == "Serbia and Montenegro", 345, cowcode)
   }
 )
-# Single warning
+# Single warning: 
 # View(original_data[original_data$country == 'Serbia and Montenegro', ])
 # Serbia & Montegro 1993-1999, recode cowcode to 345
 detach(package:countrycode)
@@ -42,7 +46,7 @@ base <- select(
 )
 rm(original_data, valid_entries)
 
-# preliminary tests on data structure ======================
+# preliminary tests on data structure ----------------------
 with(base,                            # panel uniquely id'd?
   table(duplicated(paste(cowcode, year, sep = ':')))
 ) # Yes
@@ -53,7 +57,7 @@ regime_type_dummies <- grep(
 )
 summary(rowSums(base[, regime_type_dummies]))          # Yes
 
-# convert regime types to factor ===========================
+# convert regime types to factor ---------------------------
 base <- within(base, {
   regime_type <- ifelse(
     d_electoralautocracy == 1, 1, ifelse(
@@ -83,16 +87,6 @@ table(base$regime_type[base$year %in% 1960:2010])
 base <- select(base, cowcode, year, regime_type,
   start_year, end_year
 )
-
-# add country region dummies ===============================
-# library(countrycode)
-# base <- within(base, {
-#   region <- countrycode(cowcode, 'cown', 'region', warn = TRUE)
-#   }
-# )
-# detach(package:countrycode)
-# Depricated: Went for WDI regional classification b/c
-# less missing entries
 
 # Housekeeping =============================================
 cleanWorkSpace <- c(cleanWorkSpace, 'base')
