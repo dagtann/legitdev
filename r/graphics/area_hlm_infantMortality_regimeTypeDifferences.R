@@ -36,6 +36,7 @@ hlm_regimeTypes <- update(
 # simulate expected outcome --------------------------------
 n_sims <- 2000
 sim_theta <- sim(hlm_regimeTypes, n_sims)
+str(sim_theta)
 
 pred_dta <- data.frame(
   intercept = 1,
@@ -54,8 +55,7 @@ pred_dta <- data.frame(
 pred_dta <- as.matrix(pred_dta)
 yhat <- tcrossprod(fixef(sim_theta), pred_dta)
 yhat <- apply(yhat, 2, function(y){
-  out <- y + rnorm(n_sims, 0, sim_theta@sigma)
-  out <- (.5 * out + 1)^(1/.5)
+  out <- (.5 * y + 1)^(1/.5)
   return(out)
   }
 )

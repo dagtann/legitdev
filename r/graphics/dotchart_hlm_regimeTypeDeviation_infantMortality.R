@@ -52,7 +52,7 @@ pred_dta <- data.frame(
 )
 pred_dta <- as.matrix(pred_dta)
 yhat <- tcrossprod(fixef(sim_theta), pred_dta)
-yhat <- apply(yhat, 2, function(y){y + rnorm(n_sims, 0, sim_theta@sigma)})
+#yhat <- apply(yhat, 2, function(y){y + rnorm(n_sims, 0, sim_theta@sigma)})
 
 # Disregards random effects b/c intercept variance does not
 # interfere with fixed effect on regimetype
@@ -104,7 +104,7 @@ p <- ggplot(
   scale_y_continuous(
     limits = c(40, 120),
     breaks = c(40, 60, mu, 80, 100, 120),
-    labels = c('40', '60', expression(E({y~'|'~bold(bar(x))[-R]}) == 76.3), '80', '100', '120')
+    labels = c('40', '60', expression(E(hat(y)) == 76.3), '80', '100', '120')
   ) +
   theme_minimal(base_family = 'CMU Sans Serif') +
   theme(

@@ -245,12 +245,11 @@ p <- ggplot(
     data = mu, aes(shape = 'Gesamt', x = 0.6)
   ) +
   geom_linerange(                           # sample mean CI
-    data = mu, 
-    aes(ymin = ymin, ymax = ymax, x = 0.6)
+    data = mu, aes(ymin = ymin, ymax = ymax, x = 0.6)
   ) +
   geom_jitter(                   # country year observations
-    position = position_jitter(width = .05, height = 0),
-    size = .7, alpha = ., shape = 19, colour = 'black', fill = 'black'
+    position = position_jitter(width = .1, height = .1),
+    size = .7, alpha = .4, shape = 19, colour = 'black'
   ) +
   geom_linerange(                    # mean|regime_type ci's
     data = regime_type_mean_ci, 
@@ -303,4 +302,4 @@ ggsave(
 )
 
 # housekeeping =============================================
-rm(list = ls()[ls() %in% cleanWorkSpace == FALSE])
+#rm(list = ls()[ls() %in% cleanWorkSpace == FALSE])

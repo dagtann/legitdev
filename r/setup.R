@@ -40,7 +40,7 @@ source( # transform variables, difference coding regime types
 # Data sharing ---------------------------------------------
 # Uncomment to generate an up-to-date version of the dataset
 # on the fly
-# write.csv2(
+# write.csv2( 
 #   base,
 #   file = file.path(
 #     pathOut,
