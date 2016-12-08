@@ -11,7 +11,7 @@ d <- subset(                                    # model data
     "lp_catho80", "lp_muslim80", "lp_protmg80",
     "d_monarchy", "d_ideocracy", "d_oneparty", "d_personalist", "d_military", 
     "d_eap", "d_eca", "d_lac", "d_mena", "d_sa",
-    'fe_etfra'
+    'fe_etfra', 'refra'
   )
 )
 d <- na.omit(d)
@@ -37,9 +37,9 @@ formula_list <- list(
     lag_wdi_agrvagdp + # structure of economy
     lag_ross_oil_value_2000 + lag_ross_gas_value_2000 +
     d_monarchy + d_ideocracy + d_oneparty + d_personalist + d_military +
-    lp_catho80 + lp_muslim80 + lp_protmg80 +
-    d_eap + d_eca + d_lac + d_mena + d_sa +
-    fe_etfra  
+    # lp_catho80 + lp_muslim80 + lp_protmg80 +
+    # d_eap + d_eca + d_lac + d_mena + d_sa +
+    fe_etfra + refra
   )
 )
 

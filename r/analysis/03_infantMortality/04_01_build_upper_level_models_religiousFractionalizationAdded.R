@@ -1,25 +1,27 @@
 # Generate & compare baseline candidate models =============
 rm(list = ls()[ls() %in% cleanWorkSpace == FALSE])
 hlm_packages <- c('lme4', 'arm')
-for(i in hlm_packages){library(i, character.only = TRUE)}
+for(i in hlm_packages){ library(i, character.only = TRUE) }
 
 # Data objects ---------------------------------------------
 d <- subset(                                    # model data
   analysis,
   select = c(
     'infant_mortality', 'spell_id',
-    't_lin', 't_squ', 't_cub', 't_qud',
-    "dur_lin", "dur_squ", 'dur_cub',
-    "lag_mad_gdppch",
-    "lag_wdi_agrvagdp",
+    't_lin', 't_squ',
+    "lag_mad_gdppch", "lag_wdi_agrvagdp",
     "lag_ross_oil_value_2000", "lag_ross_gas_value_2000",
     "d_monarchy", "d_ideocracy", "d_oneparty", "d_personalist", "d_military",
-    "lp_catho80", "lp_muslim80", "lp_protmg80", "refra",
-    "d_eap", "d_eca", "d_lac", "d_mena", "d_sa",
-    'fe_etfra'
+    "refra", 'fe_etfra'
   )
 )
 d <- na.omit(d)
+d <- within(d, {
+  fe_etfra_lin <- fe_etfra/10
+  fe_etfra_squ <- fe_etfra_lin^2
+  }
+)
+
 hlm_growthCurve <- lmer(
   infant_mortality ~ t_lin + t_squ + (t_lin + t_squ | spell_id),
   data = d, REML = FALSE
@@ -44,21 +46,23 @@ anova(hlm_varyingControls, hlm_regimeTypes)
 summary(hlm_regimeTypes)
 
 hlm_allControls <- update(hlm_regimeTypes,
-  . ~ . +
-  refra +
-  # lp_catho80 + lp_muslim80 + lp_protmg80 +
-  # d_eap + d_eca + d_lac + d_mena + d_sa +
-  fe_etfra
+  . ~ . + refra + fe_etfra
+)
+hlm_allControls2 <- update(hlm_regimeTypes,
+  . ~ . + refra + fe_etfra_lin + fe_etfra_squ
 )
 anova(hlm_varyingControls, hlm_regimeTypes, hlm_allControls)
-summary(hlm_allControls)
+summary(hlm_allControls); summary(hlm_allControls2)
+# identical substantive implications
+# accept mild misspecification for parsominy
 confint(hlm_allControls, level = .9)
+
 # Simulate model implied distributions of DV ---------------
 n_sims <- 2000
 n_spells <- length(unique(d$spell_id))
-n_coef <- length(fixef(hlm_regimeTypes))
+n_coef <- length(fixef(hlm_allControls))
 pred_dta <- cbind(
-  model.matrix(hlm_regimeTypes),
+  model.matrix(hlm_allControls),
   spell_id = as.numeric(d$spell_id)
 )
 beta_hat <- array(
@@ -71,7 +75,7 @@ beta_hat <- array(
   )
 )
 
-sim_theta <- sim(hlm_regimeTypes, n_sims)
+sim_theta <- sim(hlm_allControls, n_sims)
 
 # plot predicted distributions over dep_var ----------------
 for(i in 1:n_spells){
@@ -125,7 +129,9 @@ pred_dta <- data.frame(
   d_ideocracy   = c(0, 1, 0, 0, 0, -1),
   d_oneparty    = c(0, 0, 1, 0, 0, -1),
   d_personalist = c(0, 0, 0, 1, 0, -1),
-  d_military    = c(0, 0, 0, 0, 1, -1)
+  d_military    = c(0, 0, 0, 0, 1, -1),
+  refra = 0,
+  fe_etfra = 0
 )
 pred_dta <- as.matrix(pred_dta)
 yhat <- tcrossprod(fixef(sim_theta), pred_dta)
