@@ -298,7 +298,7 @@ p <- ggplot(
 ggsave(
   plot = p, 
   file = file.path(pathOut, 'dotchart_InfantMortality.png'),
-  width = plot_size, height = plot_size/1.618, dpi = 300
+  width = plot_size, height = plot_size/1.618, dpi = 1200
 )
 
 # housekeeping =============================================

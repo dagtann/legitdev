@@ -22,10 +22,12 @@ d <- within(d, {
   }
 )
 
+# Model objects --------------------------------------------
 hlm_growthCurve <- lmer(
   infant_mortality ~ t_lin + t_squ + (t_lin + t_squ | spell_id),
   data = d, REML = FALSE
 )
+summary(hlm_growthCurve)
 confint(hlm_growthCurve, level = .9)
 
 hlm_varyingControls <- lmer(
@@ -35,6 +37,7 @@ hlm_varyingControls <- lmer(
   lag_ross_oil_value_2000 + lag_ross_gas_value_2000, # rents
   data = d, REML = FALSE
 )
+summary(hlm_varyingControls)
 confint(hlm_varyingControls, level = .9)
 
 hlm_regimeTypes <- update(

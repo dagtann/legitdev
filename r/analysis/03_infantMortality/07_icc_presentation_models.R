@@ -18,6 +18,9 @@ d <- na.omit(d)
 
 # formula objects ------------------------------------------
 formula_list <- list(
+  growth_curves = formula(
+    infant_mortality ~ t_lin + t_squ + (t_lin + t_squ | spell_id)
+  ),
   varying_controls = formula(
   infant_mortality ~ t_lin + t_squ + (t_lin + t_squ | spell_id) +
     lag_mad_gdppch + # state of economy
@@ -80,14 +83,14 @@ plot(
   main = "Erklärungsvorteil bei\nsteigender Modellkomplexität",
   bty = 'n'
 )
-colours <- c('#1b9e77', '#d95f02', '#7570b3')
+colours <- c('#1b9e77', '#d95f02', '#7570b3', '#b2df8a')
   #'#a6cee3', '#1f78b4', '#b2df8a')
 for(i in 1:length(sigma_e_a)){
   lines(sigma_e_a[[i]][1, ], sigma_e_a[[i]][4, ], col = colours[i])
 }
 legend(
   x = 'bottomright',
-  legend = c('Referenzmodell', ' Referenz mit Typen', 'Alle Kontextfaktoren'),
+  legend = c('Wachstumskurven', 'Referenzmodell', ' Referenz mit Typen', 'Alle Kontextfaktoren'),
   col = colours, pch = 19, bty = 'n', horiz = TRUE
 )
 dev.off()

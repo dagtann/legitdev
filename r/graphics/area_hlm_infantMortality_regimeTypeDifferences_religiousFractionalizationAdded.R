@@ -90,14 +90,17 @@ dens_list <- within(dens_list, {
   comparison <- factor(comparison,
   levels = 1:ncol(delta),
   labels = c(
-    "Kom. Ideokr. - Einparteiautokr.",
-    "Monarchie - Personal. Autokr.",
-    "Monarchie - Militärautokr.",
-    "Monarchie - Kom. Ideokr.",
-    "Monarchie - Elekt. Autokr."
+    "Kommunistische Ideokratie\nim Vergleich zu\nEinparteiautokratie",
+    "Personalistische Autokratie",
+    "Militärautokratie",
+    "Kommunistische Ideokratie",
+    "Elektorale Autokratie"
     ) 
   )
-  hypotheses <- ifelse(comparison == "Kom. Ideokr. - Einparteiautokr.", 'H3', 'H4')
+  hypotheses <- ifelse(
+    comparison == "Kommunistische Ideokratie\nim Vergleich zu\nEinparteiautokratie",
+    'H3', 'H4: Monarchie im Vergleich zu ...'
+  )
   }
 )
 options(OutDec = ',')
@@ -112,14 +115,17 @@ p <- ggplot(data = dens_list) +
       x = lower, xend = upper
     )
   ) +
-  scale_x_continuous(limits = c(-50, 25), breaks = seq(-50, 25, 25)) +
+  scale_x_continuous(expand = c(0, 0), limits = c(-50, 25), breaks = seq(-50, 25, 25)) +
   labs(x = "Differenz der vorhergesagten Säuglingssterblichkeit") +
   theme_minimal(base_family = 'CMU Sans Serif') +
   theme(
     strip.background = element_rect(fill = 'grey95', colour = 'transparent'),
     panel.border = element_rect(fill = 'transparent', colour = 'grey95'),
     plot.margin = grid::unit(c(0, .5, 0, 0)+.1, 'lines'),
-    axis.title.y = element_blank()
+    axis.title.y = element_blank(),
+    axis.text.y = element_text(hjust = .5)
+    # axis.ticks.y = element_line(colour = "grey20"),
+    # axis.ticks.length = unit(12/2, "pt")
   ) +
   facet_grid(hypotheses ~ ., scales = 'free_y', space = 'free_y')
 ggsave(

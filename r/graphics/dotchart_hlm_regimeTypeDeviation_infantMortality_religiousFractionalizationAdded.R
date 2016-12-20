@@ -73,14 +73,14 @@ tmp[, 'regime_type'] <- c(
 # relative effect sizes - How strongly does legitimacy matter?
 mu <- (.5*mean(yhat[, 7])+1)^(1/.5) # 74.02
 
-# (.5*mean(yhat[, 1])+1)^(1/.5) # 64.13 - monarchies
-# ((.5*mean(yhat[, 1])+1)^(1/.5) - mu)/mu # -13.4 
+(.5*mean(yhat[, 1])+1)^(1/.5) # 64.13 - monarchies
+((.5*mean(yhat[, 1])+1)^(1/.5) - mu)/mu # -13.4 
 
-# (.5*mean(yhat[, 2])+1)^(1/.5) # 66.97 - com. ideocracy
-# ((.5*mean(yhat[, 2])+1)^(1/.5) - mu)/mu # -9.5
+(.5*mean(yhat[, 2])+1)^(1/.5) # 66.97 - com. ideocracy
+((.5*mean(yhat[, 2])+1)^(1/.5) - mu)/mu # -9.5
 
-# (.5*mean(yhat[, 3])+1)^(1/.5) # 91.82 - oneparty
-# ((.5*mean(yhat[, 3])+1)^(1/.5) - mu)/mu # 24.0
+(.5*mean(yhat[, 3])+1)^(1/.5) # 91.82 - oneparty
+((.5*mean(yhat[, 3])+1)^(1/.5) - mu)/mu # 24.0
 
 p <- ggplot(
   data = tmp,
