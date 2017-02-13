@@ -9,8 +9,8 @@ analysis <- subset(
     "start_year", "SI.POV.DDAY", "SP.DYN.IMRT.IN",
     "lag_mad_gdppch", "growth_mad_gdppch", "wdi_agrvagdp",
     "fe_etfra", "ross_gas_value_2000",
-    "ross_oil_value_2000", "region", "lp_catho80",
-    "lp_muslim80", "lp_protmg80", "lp_no_cpm80",
+    "ross_oil_value_2000", "region", 
+    "lp_catho80", "lp_muslim80", "lp_protmg80", "lp_no_cpm80",
     "wdi_pop65"
   )
 )
@@ -21,7 +21,16 @@ analysis <- subset(
 # ){
 #   analysis[, i] <- analysis[, i] / 100
 # }
+
 analysis[,'fe_etfra'] <- analysis[,'fe_etfra'] * 100
+
+# Calculate religious fractionalization as 1 - Herfindahl Index
+# Note: Because N = 4, H_min for p_1 = ... = p_4 = .25.
+# Multiplied by 100 to match ethnic frationalization scale
+analysis[, 'refra'] <- 1 - rowSums(
+  (analysis[, c("lp_catho80", "lp_muslim80", "lp_protmg80", "lp_no_cpm80")]/100)^2
+)
+analysis[, 'refra'] <- analysis[, 'refra'] * 100
 
 # transform skewed vars
 for(i in c("lag_mad_gdppch", "ross_gas_value_2000", "ross_oil_value_2000")){
@@ -40,7 +49,7 @@ analysis <- subset(analysis,
   select = c(
     'cowcode', 'year', 'region', 'regime_type', 'spell_id',
     'fe_etfra', 'start_year', 'SI.POV.DDAY', "SP.DYN.IMRT.IN",
-    'growth_mad_gdppch', 'wdi_pop65',
+    'growth_mad_gdppch', 'wdi_pop65', 'refra',
     names(analysis)[grep(pattern = 'lag', x = names(analysis), fixed = TRUE)],
     names(analysis)[grep(pattern = 'lp_', x = names(analysis), fixed = TRUE)]
   )

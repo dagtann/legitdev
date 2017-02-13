@@ -8,14 +8,11 @@ d <- subset(                                    # model data
   analysis,
   select = c(
     'infant_mortality', 'spell_id',
-    't_lin', 't_squ', 't_cub', 't_qud',
-    "lag_mad_gdppch",
-    "lag_wdi_agrvagdp",
+    't_lin', 't_squ',
+    "lag_mad_gdppch", "lag_wdi_agrvagdp",
     "lag_ross_oil_value_2000", "lag_ross_gas_value_2000",
     "d_monarchy", "d_ideocracy", "d_oneparty", "d_personalist", "d_military",
-    "lp_catho80", "lp_muslim80", "lp_protmg80",
-    "d_eap", "d_eca", "d_lac", "d_mena", "d_sa",
-    'fe_etfra'
+    'fe_etfra', 'refra'
   )
 )
 d <- na.omit(d)
@@ -30,7 +27,8 @@ hlm_varyingControls <- lmer(
 )
 hlm_regimeTypes <- update(
   hlm_varyingControls, . ~ . +
-  d_monarchy + d_ideocracy + d_oneparty + d_personalist + d_military
+  d_monarchy + d_ideocracy + d_oneparty + d_personalist + d_military +
+  refra + fe_etfra
 )
 
 # simulate expected outcome --------------------------------
@@ -50,7 +48,9 @@ pred_dta <- data.frame(
   d_ideocracy   = c(0, 1, 0, 0, 0, -1),
   d_oneparty    = c(0, 0, 1, 0, 0, -1),
   d_personalist = c(0, 0, 0, 1, 0, -1),
-  d_military    = c(0, 0, 0, 0, 1, -1)
+  d_military    = c(0, 0, 0, 0, 1, -1),
+  refra = mean(d$refra),
+  fe_etfra = mean(d$fe_etfra)
 )
 pred_dta <- as.matrix(pred_dta)
 yhat <- tcrossprod(fixef(sim_theta), pred_dta)
@@ -72,56 +72,67 @@ delta <- cbind(
 summary(delta)
 apply(delta, 2, function(x){1 - sum(x < 0)/length(x)})
 
-alpha <- .10
+alpha <- .1
 dens_list <- lapply(
   1:ncol(delta), function(x){
-  dens <- density(delta[, x], n = 2^11)
+  #dens <- density(delta[, x], n = 2^11)
   dens <- data.frame(
-    comparison = x, x = dens[['x']], y = dens[['y']],
+    comparison = x, #x = dens[['x']], y = dens[['y']],
     lower = quantile(delta[, x], alpha/2, names = FALSE),
-    upper = quantile(delta[, x], 1-alpha/2, names = FALSE)
+    upper = quantile(delta[, x], 1-alpha/2, names = FALSE),
+    mu = mean(delta[, x])
   )
   return(dens)
   }
 )
 dens_list <- do.call(rbind.data.frame, dens_list)
-dens_list <- within(dens_list,
+dens_list <- within(dens_list, {
   comparison <- factor(comparison,
   levels = 1:ncol(delta),
   labels = c(
-    "(1) Kom. Ideokr. - Einparteiautokr.",
-    "(2) Monarchie - Personal. Autokr.",
-    "(3) Monarchie - Militärautokr.",
-    "(4) Monarchie - Kom. Ideokr.",
-    "(5) Monarchie - Elekt. Autokr."
-  ) 
+    "Kommunistische Ideokratie\nim Vergleich zu\nEinparteiautokratie",
+    "Personalistische Autokratie",
+    "Militärautokratie",
+    "Kommunistische Ideokratie",
+    "Elektorale Autokratie"
+    ) 
   )
+  hypotheses <- ifelse(
+    comparison == "Kommunistische Ideokratie\nim Vergleich zu\nEinparteiautokratie",
+    'H3', 'H4: Monarchie im Vergleich zu ...'
+  )
+  }
 )
 options(OutDec = ',')
 p <- ggplot(data = dens_list) +
   geom_vline(xintercept = 0, colour = 'white', size = .3) + # mask grid line
   geom_vline(xintercept = 0, linetype = 'dashed', size = .3) +
-  geom_line(aes(x = x, y = y), size = .3) +
-  geom_area(
-    data = subset(dens_list, x >= lower & x <= upper),
-    aes(x = x, y = y), alpha = .4
+  geom_point(aes(y = reorder(comparison, mu), x = mu)) +
+  geom_segment(
+    aes(
+      y = reorder(comparison, mu),
+      yend = reorder(comparison, mu),
+      x = lower, xend = upper
+    )
   ) +
-  scale_x_continuous(breaks = seq(-75, 75, 25)) +
-  labs(y = "Dichte", x = "Differenz der vorhergesagten Säuglingssterblichkeit") +
+  scale_x_continuous(expand = c(0, 0), limits = c(-50, 25), breaks = seq(-50, 25, 25)) +
+  labs(x = "Differenz der vorhergesagten Säuglingssterblichkeit") +
   theme_minimal(base_family = 'CMU Sans Serif') +
-  facet_wrap(~comparison, nrow = 2) +
   theme(
-    # panel.grid.major = element_line(colour = 'grey85'),
-    # panel.grid.minor = element_line(colour = 'grey90'),
     strip.background = element_rect(fill = 'grey95', colour = 'transparent'),
     panel.border = element_rect(fill = 'transparent', colour = 'grey95'),
-    plot.margin = grid::unit(c(0, .5, 0, 0)+.1, 'lines')
-  )
+    plot.margin = grid::unit(c(0, .5, 0, 0)+.1, 'lines'),
+    axis.title.y = element_blank(),
+    axis.text.y = element_text(hjust = .5)
+    # axis.ticks.y = element_line(colour = "grey20"),
+    # axis.ticks.length = unit(12/2, "pt")
+  ) +
+  facet_grid(hypotheses ~ ., scales = 'free_y', space = 'free_y')
 ggsave(
   plot = p,
-  file = file.path(pathOut, 'area_infantMortality_deltaMultipleComparisons.png'),
+  file = file.path(pathOut, 'pointrange_infantMortality_deltaMultipleComparisons.png'),
   width = plot_size, height = plot_size/1.618,
-  dpi = 300
+  dpi = 1200
 )
 options(OutDec = '.')
 # housekeeping =============================================
